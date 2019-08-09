@@ -8,12 +8,13 @@ import torchvision.datasets as dset
 
 
 # from dataset.siames-network-dataset import SiameseNetworkDataset
-from utils import config,plot_images
-from dataset import siamese-network-dataset.SiameseNetworkDataset as SiameseNetworkDataset
-from network import siamese-network.SiameseNetwork as SiameseNetwork
+from utils.config import Config
+from utils.plot_images import imshow,show_plot
+from network.siamese_network import SiameseNetwork
+from dataset.siamese_network_dataset import SiameseNetworkDataset
 
 
-folder_dataset_test = dset.ImageFolder(root=config.Config.testing_dir)
+folder_dataset_test = dset.ImageFolder(root=Config.testing_dir)
 siamese_dataset = SiameseNetworkDataset(imageFolderDataset=folder_dataset_test,
                                         transform=transforms.Compose([transforms.Resize((100,100)),
                                                                       transforms.ToTensor()
@@ -31,5 +32,5 @@ for i in range(10):
     
     output1,output2 = net(Variable(x0).cuda(),Variable(x1).cuda())
     euclidean_distance = F.pairwise_distance(output1, output2)
-    plot_images.imshow(torchvision.utils.make_grid(concatenated),'Dissimilarity: {:.2f}'.format(euclidean_distance.item()))
+    imshow(torchvision.utils.make_grid(concatenated),'Dissimilarity: {:.2f}'.format(euclidean_distance.item()))
 
