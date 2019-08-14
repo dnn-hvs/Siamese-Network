@@ -1,49 +1,44 @@
-from torch.utils.data import DataLoader,Dataset
+from torch.utils.data import DataLoader, Dataset
 import random
-from PIL import Image
-import PIL.ImageOps    
+import cv2
 import torch
 import numpy as np
+from PIL import Image
+
 
 class SiameseNetworkDataset(Dataset):
-    
-    def __init__(self,imageFolderDataset,transform=None,should_invert=True):
-        self.imageFolderDataset = imageFolderDataset    
+
+    def __init__(self, imageFolderDataset, rdm, transform=None, should_invert=True):
+        self.imageFolderDataset = imageFolderDataset
         self.transform = transform
         self.should_invert = should_invert
-        
-    def __getitem__(self,index):
-        img0_tuple = random.choice(self.imageFolderDataset.imgs)
-        #we need to make sure approx 50% of images are in the same class
-        should_get_same_class = random.randint(0,1) 
-        if should_get_same_class:
-            while True:
-                #keep looping till the same class image is found
-                img1_tuple = random.choice(self.imageFolderDataset.imgs) 
-                if img0_tuple[1]==img1_tuple[1]:
-                    break
-        else:
-            while True:
-                #keep looping till a different class image is found
-                
-                img1_tuple = random.choice(self.imageFolderDataset.imgs) 
-                if img0_tuple[1] !=img1_tuple[1]:
-                    break
+        self.rdm = rdm
 
-        img0 = Image.open(img0_tuple[0])
-        img1 = Image.open(img1_tuple[0])
-        img0 = img0.convert("L")
-        img1 = img1.convert("L")
-        
-        if self.should_invert:
-            img0 = PIL.ImageOps.invert(img0)
-            img1 = PIL.ImageOps.invert(img1)
+    def __getitem__(self, index):
+        img0_tuple = random.choice(self.imageFolderDataset.imgs)
+        while True:
+            img1_tuple = random.choice(self.imageFolderDataset.imgs)
+            if img0_tuple[1] == img1_tuple[1]:
+                break
+
+        img0 = Image.open(img0_tuple[0]).convert("L")
+        img1 = Image.open(img1_tuple[0]).convert("L")
 
         if self.transform is not None:
             img0 = self.transform(img0)
             img1 = self.transform(img1)
-        
-        return img0, img1 , torch.from_numpy(np.array([int(img1_tuple[1]!=img0_tuple[1])],dtype=np.float32))
-    
+
+        return img0, img1, self.__get_rdm_pair__(img0_tuple[0], img1_tuple[0])
+
     def __len__(self):
         return len(self.imageFolderDataset.imgs)
+
+    def __get_rdm_pair__(self, img1_name, img2_name):
+        img_num1 = int(img1_name.split("/image_")[1].split(".jpg")[0])
+        img_num2 = int(img2_name.split("/image_")[1].split(".jpg")[0])
+
+        if(img1_name.find("92_Image_Set") != -1):
+            rdm = self.rdm[92]
+        else:
+            rdm = self.rdm[118]
+        return (torch.from_numpy(np.array([rdm[img_num1-1][img_num2-1]], dtype=np.float32)))
