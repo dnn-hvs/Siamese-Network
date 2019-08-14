@@ -4,6 +4,7 @@ import cv2
 import torch
 import numpy as np
 from PIL import Image
+from utils import foveate
 
 
 class SiameseNetworkDataset(Dataset):
@@ -21,8 +22,14 @@ class SiameseNetworkDataset(Dataset):
             if img0_tuple[1] == img1_tuple[1]:
                 break
 
-        img0 = Image.open(img0_tuple[0]).convert("L")
-        img1 = Image.open(img1_tuple[0]).convert("L")
+        img0 = np.asarray(Image.open(img0_tuple[0]).convert("L"))
+        img1 = np.asarray(Image.open(img1_tuple[0]).convert("L"))
+        img0 = foveate.foveat_img(
+            img0, [[int(img0.shape[1]/2), int(img0.shape[0]/2)]])
+        img1 = foveate.foveat_img(
+            img1, [[int(img1.shape[1]/2), int(img1.shape[0]/2)]])
+        img0 = Image.fromarray(np.uint8(img0))
+        img1 = Image.fromarray(np.uint8(img1))
 
         if self.transform is not None:
             img0 = self.transform(img0)
