@@ -52,9 +52,14 @@ def train(train_dataloader, config):
     ct = 0
     for name, child in net.named_children():
         for name2, params in net.named_parameters():
-            if ct < 10:
-                print("name2:", name2)
-                params.requires_grad = False
+            if config.gt:
+                if ct > config.num_freeze_layers*2:
+                    print("Freezing layer:", name2)
+                    params.requires_grad = False
+            else:
+                if ct < config.num_freeze_layers*2:
+                    print("Freezing layer:", name2)
+                    params.requires_grad = False
             ct += 1
 
     print(net.parameters())
