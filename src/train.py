@@ -10,7 +10,7 @@ from torch import optim
 import _init_paths
 
 from utils.config import Config
-from utils.plot_images import imshow, show_plot
+from utils.plot_images import imshow, save_plot
 from utils.read_matfile import get_rdm
 from loss.contrastive_loss import ContrastiveLoss
 from loss.squared_euclidean_loss import EucledianLoss
@@ -44,31 +44,48 @@ def prepare_dataset(config):
 
 def train(train_dataloader, config):
     net = SiameseNetwork(config).cuda()
-    print(net)
-    criterion = EucledianLoss()
-    # criterion = ContrastiveLoss()
-    optimizer = optim.Adam(net.parameters(), lr=0.0005)
+    loss_criterion = EucledianLoss()
+    # loss_criterion = ContrastiveLoss()
+
+    # print(net.named_children())
+    # Freezing the first few layers. Here I am freezing the first 7 layers ct = 0
+    ct = 0
+    for name, child in net.named_children():
+        for name2, params in net.named_parameters():
+            if ct < 10:
+                print("name2:", name2)
+                params.requires_grad = False
+            ct += 1
+
+    print(net.parameters())
+    optimizer = optim.Adam(
+        filter(lambda p: p.requires_grad, net.parameters()), lr=0.0005)
 
     counter = []
     loss_history = []
     iteration_number = 0
-
     for epoch in range(0, config.num_epochs):
+        num_images = 0
+
         for i, data in enumerate(train_dataloader, 0):
             img0, img1, label = data
             img0, img1, label = img0.cuda(), img1.cuda(), label.cuda()
+            num_images += img0.shape[0]
+
             optimizer.zero_grad()
             output1, output2 = net(img0, img1)
-            loss_contrastive = criterion(output1, output2, label)
-            loss_contrastive.backward()
+            loss = loss_criterion(output1, output2, label)
+            loss.backward()
             optimizer.step()
             if i % 10 == 0:
                 print("Epoch number {}\n Current loss {}\n".format(
-                    epoch, loss_contrastive.item()))
+                    epoch, loss.item()))
                 iteration_number += 10
                 counter.append(iteration_number)
-                loss_history.append(loss_contrastive.item())
-    show_plot(counter, loss_history)
+                loss_history.append(loss.item())
+        print("Total Number of images: ", num_images)
+
+    save_plot(counter, loss_history, config.plot_name)
 
 
 def main(config):

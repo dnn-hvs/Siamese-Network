@@ -15,6 +15,6 @@ def imshow(img, text=None, should_save=False):
     plt.show()
 
 
-def show_plot(iteration, loss):
+def save_plot(iteration, loss, name):
     plt.plot(iteration, loss)
-    plt.show()
+    plt.savefig(name+".png")

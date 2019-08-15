@@ -24,17 +24,24 @@ class SiameseNetworkDataset(Dataset):
 
         img0 = np.asarray(Image.open(img0_tuple[0]).convert("L"))
         img1 = np.asarray(Image.open(img1_tuple[0]).convert("L"))
+
+        img0 = np.asarray(Image.open(img0_tuple[0]).convert("L"))
+        img1 = np.asarray(Image.open(img1_tuple[0]).convert("L"))
+
         img0 = foveate.foveat_img(
             img0, [[int(img0.shape[1]/2), int(img0.shape[0]/2)]])
         img1 = foveate.foveat_img(
             img1, [[int(img1.shape[1]/2), int(img1.shape[0]/2)]])
+
+        img0 = np.dstack((img0, img0, img0))
+        img1 = np.dstack((img1, img1, img1))
+
         img0 = Image.fromarray(np.uint8(img0))
         img1 = Image.fromarray(np.uint8(img1))
 
         if self.transform is not None:
             img0 = self.transform(img0)
             img1 = self.transform(img1)
-
         return img0, img1, self.__get_rdm_pair__(img0_tuple[0], img1_tuple[0])
 
     def __len__(self):

@@ -9,18 +9,17 @@ class EucledianLoss(torch.nn.Module):
         self.margin = margin
 
     def forward(self, output1, output2, label):
-        predicted = 1 - self.pearson_corelation(output1, output2)
+        last_layer_index = len(output1) - 1
+        predicted = 1 - \
+            self.pearson_corelation(
+                output1[last_layer_index], output2[last_layer_index])
         # print(predicted, predicted.shape, label.shape)
         euclidean_distance = F.pairwise_distance(
-            predicted, label, keepdim=True)
-        # print(euclidean_distance.size())
+            predicted, label, keepdim=True) ** 2
         return torch.mean(euclidean_distance)
 
-    def pearson_corelation(self, output1, output2):
-        x = output1
-        y = output2
+    def pearson_corelation(self, x, y):
         vx = x - torch.mean(x, axis=1).unsqueeze(1)
         vy = y - torch.mean(y, axis=1).unsqueeze(1)
 
-        # print(torch.sum(vx * vy, axis=1).shape)
         return (torch.sum(vx * vy, axis=1) / (torch.sqrt(torch.sum(vx ** 2, axis=1)) * torch.sqrt(torch.sum(vy ** 2, axis=1)))).unsqueeze(1)

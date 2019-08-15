@@ -34,10 +34,12 @@ models = {
 class SiameseNetwork(nn.Module):
     def __init__(self, config):
         super(SiameseNetwork, self).__init__()
-        self.network = models[config.arch]()
+        if config.arch == 'alexnet':
+            self.network = models[config.arch]()
+        else:
+            self.network = models[config.arch](pretrained=True)
 
     def forward(self, input1, input2):
         output1 = self.network(input1)
         output2 = self.network(input2)
-        print(output1.shape, output2.shape)
         return output1, output2
