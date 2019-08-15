@@ -24,6 +24,8 @@ class Config(object):
                                  help='total training epochs.')
         self.parser.add_argument('--batch_size', type=int, default=32,
                                  help='batch size')
+        self.parser.add_argument('--plot_name', default='Graph',
+                                 help='batch size')
 
         # self.parser.add_argument('--lr_step', type=str, default='90,120',
         #                          help='drop learning rate by 10.')
