@@ -10,14 +10,14 @@ import os
 
 class SiameseNetworkDataset(Dataset):
 
-    def __init__(self, imageFolderDataset, rdm, transform=None, should_invert=True, apply_foveate=False):
-        self.imageFolderDataset = imageFolderDataset
+    def __init__(self, rdm, transform=None, should_invert=True, apply_foveate=False):
         self.transform = transform
         self.should_invert = should_invert
         self.rdm = rdm
         self.apply_foveate = apply_foveate
         self.image_list = np.array(
             [(os.path.join(dirpath, filenames[0]), os.path.join(dirpath, filenames[1])) for dirpath, dirnames, filenames in os.walk('../data_the_data') if filenames])
+        # print(len(self.image_list))
 
     def __getitem__(self, index):
         img0_path, img1_path = random.choice(self.image_list)
@@ -27,7 +27,7 @@ class SiameseNetworkDataset(Dataset):
         return img0, img1, self.get_rdm_pair(img0_path, img1_path)
 
     def __len__(self):
-        return len(self.imageFolderDataset.imgs)
+        return len(self.image_list)
 
     def get_rdm_pair(self, img1_name, img2_name):
         img_num1 = int(img1_name.split("/image_")[1].split(".jpg")[0])

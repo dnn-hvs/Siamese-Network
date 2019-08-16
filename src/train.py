@@ -1,14 +1,14 @@
 import torchvision
-import torchvision.datasets as dset
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Dataset
 import torchvision.utils
 import torch
 import torch.nn as nn
 from torch import optim
-
+from tqdm import tqdm
 import _init_paths
-
+import os
+from datetime import datetime
 from utils.config import Config
 from utils.plot_images import imshow, save_plot
 from utils.read_matfile import get_rdm
@@ -20,10 +20,8 @@ from dataset.siamese_network_dataset import SiameseNetworkDataset
 
 
 def prepare_dataset(config):
-    folder_dataset = dset.ImageFolder(root=config.train_dir)
-    print(type(folder_dataset))
     rdm = get_rdm()
-    siamese_dataset = SiameseNetworkDataset(imageFolderDataset=folder_dataset, rdm=rdm,
+    siamese_dataset = SiameseNetworkDataset(rdm=rdm,
                                             transform=transforms.Compose([transforms.Resize((100, 100)),
                                                                           transforms.ToTensor()
                                                                           ]), should_invert=False, apply_foveate=config.foveate)
@@ -62,28 +60,37 @@ def train(train_dataloader, config):
     counter = []
     loss_history = []
     iteration_number = 0
-    for epoch in range(0, config.num_epochs):
-        num_images = 0
-
-        for i, data in enumerate(train_dataloader, 0):
+    loss = torch.Tensor([[999999]])
+    min_loss = 99999
+    net.train()
+    path = '../models/' + config.arch + str(datetime.now())
+    for epoch in tqdm(range(0, config.num_epochs)):
+        for i, data in tqdm(enumerate(train_dataloader), ascii=True, desc='Epoch number {}; Current loss {}'.format(
+                epoch, loss.item())):
             img0, img1, label = data
             # print(img0.shape)
             img0, img1, label = img0.cuda(), img1.cuda(), label.cuda()
-            num_images += img0.shape[0]
             optimizer.zero_grad()
             output1, output2 = net(img0, img1)
             loss = loss_criterion(output1, output2, label)
             loss.backward()
             optimizer.step()
             if i % 10 == 0:
-                print("Epoch number {}; Current loss {};".format(
-                    epoch, loss.item()), end='\r')
+                # print("\n\rEpoch number {}; Current loss {};".format(
+                #     epoch, loss.item()), end='\r')
                 iteration_number += 10
                 counter.append(iteration_number)
                 loss_history.append(loss.item())
 
-        print("\nTotal Number of images: ", num_images)
+        try:
+            os.mkdir(path)
+        except FileExistsError:
+            pass
 
+        if min_loss > loss.item():
+            min_loss = loss.item()
+            torch.save(net, path + 'model_best.pth')
+        torch.save(net, path + 'model_last.pth')
     save_plot(counter, loss_history, config.plot_name)
 
 
