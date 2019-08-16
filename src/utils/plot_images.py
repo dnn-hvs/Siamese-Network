@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
+import os
 
 matplotlib.get_backend()
 
@@ -17,4 +18,7 @@ def imshow(img, text=None, should_save=False):
 
 def save_plot(iteration, loss, name):
     plt.plot(iteration, loss)
-    plt.savefig(name+".png")
+    if not os.path.isdir("../graphs"):
+        os.mkdir("../graphs")
+
+    plt.savefig("../graphs/"+name+".png")
