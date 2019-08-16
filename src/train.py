@@ -25,7 +25,7 @@ def prepare_dataset(config):
     siamese_dataset = SiameseNetworkDataset(imageFolderDataset=folder_dataset, rdm=rdm,
                                             transform=transforms.Compose([transforms.Resize((100, 100)),
                                                                           transforms.ToTensor()
-                                                                          ]), should_invert=False)
+                                                                          ]), should_invert=False, apply_foveate=config.foveate)
 
     vis_dataloader = DataLoader(siamese_dataset,
                                 shuffle=True,

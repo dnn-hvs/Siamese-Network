@@ -9,11 +9,12 @@ from utils import foveate
 
 class SiameseNetworkDataset(Dataset):
 
-    def __init__(self, imageFolderDataset, rdm, transform=None, should_invert=True):
+    def __init__(self, imageFolderDataset, rdm, transform=None, should_invert=True, apply_foveate=False):
         self.imageFolderDataset = imageFolderDataset
         self.transform = transform
         self.should_invert = should_invert
         self.rdm = rdm
+        self.apply_foveate = apply_foveate
 
     def __getitem__(self, index):
         img0_tuple = random.choice(self.imageFolderDataset.imgs)
@@ -25,13 +26,11 @@ class SiameseNetworkDataset(Dataset):
         img0 = np.asarray(Image.open(img0_tuple[0]).convert("L"))
         img1 = np.asarray(Image.open(img1_tuple[0]).convert("L"))
 
-        img0 = np.asarray(Image.open(img0_tuple[0]).convert("L"))
-        img1 = np.asarray(Image.open(img1_tuple[0]).convert("L"))
-
-        img0 = foveate.foveat_img(
-            img0, [[int(img0.shape[1]/2), int(img0.shape[0]/2)]])
-        img1 = foveate.foveat_img(
-            img1, [[int(img1.shape[1]/2), int(img1.shape[0]/2)]])
+        if self.apply_foveate:
+            img0 = foveate.foveat_img(
+                img0, [[int(img0.shape[1]/2), int(img0.shape[0]/2)]])
+            img1 = foveate.foveat_img(
+                img1, [[int(img1.shape[1]/2), int(img1.shape[0]/2)]])
 
         img0 = np.dstack((img0, img0, img0))
         img1 = np.dstack((img1, img1, img1))
@@ -42,12 +41,12 @@ class SiameseNetworkDataset(Dataset):
         if self.transform is not None:
             img0 = self.transform(img0)
             img1 = self.transform(img1)
-        return img0, img1, self.__get_rdm_pair__(img0_tuple[0], img1_tuple[0])
+        return img0, img1, self.get_rdm_pair(img0_tuple[0], img1_tuple[0])
 
     def __len__(self):
         return len(self.imageFolderDataset.imgs)
 
-    def __get_rdm_pair__(self, img1_name, img2_name):
+    def get_rdm_pair(self, img1_name, img2_name):
         img_num1 = int(img1_name.split("/image_")[1].split(".jpg")[0])
         img_num2 = int(img2_name.split("/image_")[1].split(".jpg")[0])
 
