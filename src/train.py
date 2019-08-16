@@ -63,7 +63,7 @@ def train(train_dataloader, config):
     loss = torch.Tensor([[999999]])
     min_loss = 99999
     net.train()
-    path = '../models/' + config.arch + str(datetime.now())
+    path = os.path.join('../models', config.arch+"_" + str(datetime.now()))
     for epoch in tqdm(range(0, config.num_epochs)):
         for i, data in tqdm(enumerate(train_dataloader), ascii=True, desc='Epoch number {}; Current loss {}'.format(
                 epoch, loss.item())):
@@ -82,15 +82,15 @@ def train(train_dataloader, config):
                 counter.append(iteration_number)
                 loss_history.append(loss.item())
 
-        try:
+        if not os.path.isdir("../models"):
+            os.mkdir('../models')
+        if not os.path.isdir(path):
             os.mkdir(path)
-        except FileExistsError:
-            pass
 
         if min_loss > loss.item():
             min_loss = loss.item()
-            torch.save(net, path + 'model_best.pth')
-        torch.save(net, path + 'model_last.pth')
+            torch.save(net, os.path.join(path, 'model_best.pth'))
+        torch.save(net, os.path.join(path, 'model_last.pth'))
     save_plot(counter, loss_history, config.plot_name)
 
 
