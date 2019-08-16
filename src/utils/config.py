@@ -5,7 +5,7 @@ class Config(object):
     def __init__(self):
         self.parser = argparse.ArgumentParser()
         # basic experiment setting
-        self.parser.add_argument('--train_dir', default='../data/Training_Data/',
+        self.parser.add_argument('--train_dir', default='../data_the_data/',
                                  help='Training Dataset Directory')
         self.parser.add_argument('--test_dir', default='../data/Test_Data/',
                                  help='Test Dataset Directory')
@@ -25,7 +25,7 @@ class Config(object):
         self.parser.add_argument('--batch_size', type=int, default=32,
                                  help='batch size')
 
-        self.parser.add_argument('--num_workers', type=int, default=32,
+        self.parser.add_argument('--num_workers', type=int, default=8,
                                  help='Number of workers')
 
         self.parser.add_argument('--plot_name', default='Graph',

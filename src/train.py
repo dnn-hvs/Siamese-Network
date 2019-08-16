@@ -21,6 +21,7 @@ from dataset.siamese_network_dataset import SiameseNetworkDataset
 
 def prepare_dataset(config):
     folder_dataset = dset.ImageFolder(root=config.train_dir)
+    print(type(folder_dataset))
     rdm = get_rdm()
     siamese_dataset = SiameseNetworkDataset(imageFolderDataset=folder_dataset, rdm=rdm,
                                             transform=transforms.Compose([transforms.Resize((100, 100)),
@@ -54,7 +55,7 @@ def train(train_dataloader, config):
                     params.requires_grad = False
             ct += 1
 
-    print(net.parameters())
+    # print(net.parameters())
     optimizer = optim.Adam(
         filter(lambda p: p.requires_grad, net.parameters()), lr=0.0005)
 
@@ -66,21 +67,22 @@ def train(train_dataloader, config):
 
         for i, data in enumerate(train_dataloader, 0):
             img0, img1, label = data
+            # print(img0.shape)
             img0, img1, label = img0.cuda(), img1.cuda(), label.cuda()
             num_images += img0.shape[0]
-
             optimizer.zero_grad()
             output1, output2 = net(img0, img1)
             loss = loss_criterion(output1, output2, label)
             loss.backward()
             optimizer.step()
             if i % 10 == 0:
-                print("Epoch number {}\n Current loss {}\n".format(
-                    epoch, loss.item()))
+                print("Epoch number {}; Current loss {};".format(
+                    epoch, loss.item()), end='\r')
                 iteration_number += 10
                 counter.append(iteration_number)
                 loss_history.append(loss.item())
-        print("Total Number of images: ", num_images)
+
+        print("\nTotal Number of images: ", num_images)
 
     save_plot(counter, loss_history, config.plot_name)
 

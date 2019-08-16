@@ -5,6 +5,7 @@ import torch
 import numpy as np
 from PIL import Image
 from utils import foveate
+import os
 
 
 class SiameseNetworkDataset(Dataset):
@@ -15,33 +16,15 @@ class SiameseNetworkDataset(Dataset):
         self.should_invert = should_invert
         self.rdm = rdm
         self.apply_foveate = apply_foveate
+        self.image_list = np.array(
+            [(os.path.join(dirpath, filenames[0]), os.path.join(dirpath, filenames[1])) for dirpath, dirnames, filenames in os.walk('../data_the_data') if filenames])
 
     def __getitem__(self, index):
-        img0_tuple = random.choice(self.imageFolderDataset.imgs)
-        while True:
-            img1_tuple = random.choice(self.imageFolderDataset.imgs)
-            if img0_tuple[1] == img1_tuple[1]:
-                break
-
-        img0 = np.asarray(Image.open(img0_tuple[0]).convert("L"))
-        img1 = np.asarray(Image.open(img1_tuple[0]).convert("L"))
-
-        if self.apply_foveate:
-            img0 = foveate.foveat_img(
-                img0, [[int(img0.shape[1]/2), int(img0.shape[0]/2)]])
-            img1 = foveate.foveat_img(
-                img1, [[int(img1.shape[1]/2), int(img1.shape[0]/2)]])
-
-        img0 = np.dstack((img0, img0, img0))
-        img1 = np.dstack((img1, img1, img1))
-
-        img0 = Image.fromarray(np.uint8(img0))
-        img1 = Image.fromarray(np.uint8(img1))
-
-        if self.transform is not None:
-            img0 = self.transform(img0)
-            img1 = self.transform(img1)
-        return img0, img1, self.get_rdm_pair(img0_tuple[0], img1_tuple[0])
+        img0_path, img1_path = random.choice(self.image_list)
+        # print(img0_path, img1_path)
+        img0 = self.modify_image(img0_path)
+        img1 = self.modify_image(img1_path)
+        return img0, img1, self.get_rdm_pair(img0_path, img1_path)
 
     def __len__(self):
         return len(self.imageFolderDataset.imgs)
@@ -55,3 +38,15 @@ class SiameseNetworkDataset(Dataset):
         else:
             rdm = self.rdm[118]
         return (torch.from_numpy(np.array([rdm[img_num1-1][img_num2-1]], dtype=np.float32)))
+
+    def modify_image(self, img_path):
+        img = np.asarray(Image.open(img_path).convert("L"))
+        if self.apply_foveate:
+            img = foveate.foveat_img(
+                img, [[int(img.shape[1]/2), int(img.shape[0]/2)]])
+        img = np.dstack((img, img, img))
+        img = Image.fromarray(np.uint8(img))
+        if self.transform is not None:
+            img = self.transform(img)
+
+        return img
