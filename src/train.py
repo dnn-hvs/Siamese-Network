@@ -27,17 +27,9 @@ def prepare_dataset(config):
                                                                           transforms.ToTensor()
                                                                           ]), should_invert=False, apply_foveate=config.foveate)
 
-    vis_dataloader = DataLoader(siamese_dataset,
-                                shuffle=True,
-                                num_workers=8,
-                                batch_size=8)
-    dataiter = iter(vis_dataloader)
-
-    example_batch = next(dataiter)
-    concatenated = torch.cat((example_batch[0], example_batch[1]), 0)
     train_dataloader = DataLoader(siamese_dataset,
                                   shuffle=True,
-                                  num_workers=8,
+                                  num_workers=config.num_workers,
                                   batch_size=config.batch_size)
     return train_dataloader
 

@@ -24,6 +24,10 @@ class Config(object):
                                  help='total training epochs.')
         self.parser.add_argument('--batch_size', type=int, default=32,
                                  help='batch size')
+
+        self.parser.add_argument('--num_workers', type=int, default=32,
+                                 help='Number of workers')
+
         self.parser.add_argument('--plot_name', default='Graph',
                                  help='Name of the loss plot that will be saved. Default name is Graph.png')
 
