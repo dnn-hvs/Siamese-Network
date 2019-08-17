@@ -14,7 +14,7 @@ from utils.plot_images import imshow, save_plot
 from utils.read_matfile import get_rdm
 from loss.contrastive_loss import ContrastiveLoss
 from loss.squared_euclidean_loss import EucledianLoss
-
+from train import save_mode, load_model
 from network.siamese_network import SiameseNetwork
 from dataset.siamese_network_dataset import SiameseNetworkDataset
 
@@ -40,15 +40,6 @@ def train(train_dataloader, config):
     net = SiameseNetwork(config)
     net.to(device)
 
-    # Multiple gpus support
-    chunk_sizes = config.batch_size // len(config.gpus)
-    if len(config.gpus) > 1:
-            net = DataParallel(
-                net, device_ids=config.gpus,
-                chunk_sizes=chunk_sizes).to(device)
-        else:
-            net = net.to(device)
-
      loss_criterion = EucledianLoss()
       # loss_criterion = ContrastiveLoss()
 
@@ -68,18 +59,32 @@ def train(train_dataloader, config):
                 ct += 1
 
         # print(net.parameters())
-        optimizer = optim.Adam(
-            filter(lambda p: p.requires_grad, net.parameters()), lr=0.0005)
+        optimizer = optim.Adam(filter(lambda p: p.requires_grad, net.parameters()), lr=0.0005)
 
         counter = []
         loss_history = []
         iteration_number = 0
-        loss = torch.Tensor([[999999]])
-        min_loss = 99999
+        loss = torch.Tensor([[1e10]])
+        min_loss = 1e10
         net.train()
+
+        # Resume the model if needed
+        start_epoch = 0
+        if config.load_model != '':
+            net, optimizer, start_epoch = load_model(net, config.load_model, optimizer, config.resume, config.lr)
+
+        # Multiple gpus support
+        chunk_sizes = config.batch_size // len(config.gpus)
+        if len(config.gpus) > 1:
+                net = DataParallel(
+                    net, device_ids=config.gpus,
+                    chunk_sizes=chunk_sizes).to(device)
+        else:
+            net = net.to(device)
+
         path = os.path.join('../models', config.arch+"_" + str(datetime.now()))
-        for epoch in tqdm(range(0, config.num_epochs)):
-            for i, data in tqdm(enumerate(train_dataloader), ascii=True, desc='Epoch number {}; Current loss {}'.format(
+        for epoch in tqdm(range(start_epoch + 1, config.num_epochs + 1)):
+            for i, data in tqdm(enumerate(train_dataloader), ascii=True, desc='Epoch: {}; Loss: {}'.format(
                     epoch, loss.item())):
                 img0, img1, label = data
                 # print(img0.shape)
@@ -103,8 +108,9 @@ def train(train_dataloader, config):
 
             if min_loss > loss.item():
                 min_loss = loss.item()
-                torch.save(net, os.path.join(path, 'model_best.pth'))
-            torch.save(net, os.path.join(path, 'model_last.pth'))
+                save_model(os.path.join(path, 'model_best.pth'), epoch, net, optimizer)
+
+            save_model(os.path.join(path, 'model_last.pth'), epoch, net, optimizer)
         save_plot(counter, loss_history, config.plot_name)
 
 
