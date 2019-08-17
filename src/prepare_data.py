@@ -2,7 +2,13 @@ from itertools import combinations
 import os
 from shutil import copy
 
-# os.mkdir('../data_the_data')
+try:
+    os.mkdir('../data_the_data')
+    os.mkdir('../data_the_data/92_images')
+    os.mkdir('../data_the_data/118_images')
+
+except FileExistsError:
+    pass
 image_92_path = '../data/Training_Data/92_Image_Set/92images/'
 image_118_path = '../data/Training_Data/118_Image_Set/118images/'
 images_92 = os.listdir(image_92_path)
