@@ -19,7 +19,8 @@ class Config(object):
         # train
         self.parser.add_argument('--lr', type=float, default=0.005,
                                  help='learning rate for batch size 32.')
-
+        self.parser.add_argument('--gpus', default='0',
+                                 help='-1 for CPU, use comma for multiple gpus')
         self.parser.add_argument('--num_epochs', type=int, default=78,
                                  help='total training epochs.')
         self.parser.add_argument('--batch_size', type=int, default=32,
@@ -57,6 +58,10 @@ class Config(object):
         else:
             opt = self.parser.parse_args(args)
 
+        opt.gpus_str = opt.gpus
+        opt.gpus = [int(gpu) for gpu in opt.gpus.split(',')]
+        opt.gpus = [i for i in range(
+            len(opt.gpus))] if opt.gpus[0] >= 0 else [-1]
         return opt
 
     def init(self, args=''):

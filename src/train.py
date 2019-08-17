@@ -34,64 +34,78 @@ def prepare_dataset(config):
 
 
 def train(train_dataloader, config):
-    net = SiameseNetwork(config).cuda()
-    loss_criterion = EucledianLoss()
-    # loss_criterion = ContrastiveLoss()
+    os.environ['CUDA_VISIBLE_DEVICES'] = config.gpus_str
+    device = torch.device('cuda' if config.gpus[0] >= 0 else 'cpu')
 
-    # print(net.named_children())
-    # Freezing the first few layers. Here I am freezing the first 7 layers ct = 0
-    ct = 0
-    for name, child in net.named_children():
-        for name2, params in net.named_parameters():
-            if config.gt:
-                if ct > config.num_freeze_layers*2:
-                    print("Freezing layer:", name2)
-                    params.requires_grad = False
-            else:
-                if ct < config.num_freeze_layers*2:
-                    print("Freezing layer:", name2)
-                    params.requires_grad = False
-            ct += 1
+    net = SiameseNetwork(config)
+    net.to(device)
 
-    # print(net.parameters())
-    optimizer = optim.Adam(
-        filter(lambda p: p.requires_grad, net.parameters()), lr=0.0005)
+    # Multiple gpus support
+    chunk_sizes = config.batch_size // len(config.gpus)
+    if len(config.gpus) > 1:
+            net = DataParallel(
+                net, device_ids=config.gpus,
+                chunk_sizes=chunk_sizes).to(device)
+        else:
+            net = net.to(device)
 
-    counter = []
-    loss_history = []
-    iteration_number = 0
-    loss = torch.Tensor([[999999]])
-    min_loss = 99999
-    net.train()
-    path = os.path.join('../models', config.arch+"_" + str(datetime.now()))
-    for epoch in tqdm(range(0, config.num_epochs)):
-        for i, data in tqdm(enumerate(train_dataloader), ascii=True, desc='Epoch number {}; Current loss {}'.format(
-                epoch, loss.item())):
-            img0, img1, label = data
-            # print(img0.shape)
-            img0, img1, label = img0.cuda(), img1.cuda(), label.cuda()
-            optimizer.zero_grad()
-            output1, output2 = net(img0, img1)
-            loss = loss_criterion(output1, output2, label)
-            loss.backward()
-            optimizer.step()
-            if i % 10 == 0:
-                # print("\n\rEpoch number {}; Current loss {};".format(
-                #     epoch, loss.item()), end='\r')
-                iteration_number += 10
-                counter.append(iteration_number)
-                loss_history.append(loss.item())
+     loss_criterion = EucledianLoss()
+      # loss_criterion = ContrastiveLoss()
 
-        if not os.path.isdir("../models"):
-            os.mkdir('../models')
-        if not os.path.isdir(path):
-            os.mkdir(path)
+      # print(net.named_children())
+      # Freezing the first few layers. Here I am freezing the first 7 layers ct = 0
+      ct = 0
+       for name, child in net.named_children():
+            for name2, params in net.named_parameters():
+                if config.gt:
+                    if ct > config.num_freeze_layers*2:
+                        print("Freezing layer:", name2)
+                        params.requires_grad = False
+                else:
+                    if ct < config.num_freeze_layers*2:
+                        print("Freezing layer:", name2)
+                        params.requires_grad = False
+                ct += 1
 
-        if min_loss > loss.item():
-            min_loss = loss.item()
-            torch.save(net, os.path.join(path, 'model_best.pth'))
-        torch.save(net, os.path.join(path, 'model_last.pth'))
-    save_plot(counter, loss_history, config.plot_name)
+        # print(net.parameters())
+        optimizer = optim.Adam(
+            filter(lambda p: p.requires_grad, net.parameters()), lr=0.0005)
+
+        counter = []
+        loss_history = []
+        iteration_number = 0
+        loss = torch.Tensor([[999999]])
+        min_loss = 99999
+        net.train()
+        path = os.path.join('../models', config.arch+"_" + str(datetime.now()))
+        for epoch in tqdm(range(0, config.num_epochs)):
+            for i, data in tqdm(enumerate(train_dataloader), ascii=True, desc='Epoch number {}; Current loss {}'.format(
+                    epoch, loss.item())):
+                img0, img1, label = data
+                # print(img0.shape)
+                img0, img1, label = img0.to(device), img1.to(device), label.to(device)
+                optimizer.zero_grad()
+                output1, output2 = net(img0, img1)
+                loss = loss_criterion(output1, output2, label)
+                loss.backward()
+                optimizer.step()
+                if i % 10 == 0:
+                    # print("\n\rEpoch number {}; Current loss {};".format(
+                    #     epoch, loss.item()), end='\r')
+                    iteration_number += 10
+                    counter.append(iteration_number)
+                    loss_history.append(loss.item())
+
+            if not os.path.isdir("../models"):
+                os.mkdir('../models')
+            if not os.path.isdir(path):
+                os.mkdir(path)
+
+            if min_loss > loss.item():
+                min_loss = loss.item()
+                torch.save(net, os.path.join(path, 'model_best.pth'))
+            torch.save(net, os.path.join(path, 'model_last.pth'))
+        save_plot(counter, loss_history, config.plot_name)
 
 
 def main(config):
