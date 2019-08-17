@@ -5,7 +5,7 @@ import torchvision.utils
 import torch
 import torch.nn as nn
 from torch import optim
-from tqdm import tqdm
+from tqdm import tqdm, tgrange
 import _init_paths
 import os
 from datetime import datetime
@@ -83,34 +83,36 @@ def train(train_dataloader, config):
             net = net.to(device)
 
         path = os.path.join('../models', config.arch+"_" + str(datetime.now()))
-        for epoch in tqdm(range(start_epoch + 1, config.num_epochs + 1)):
-            for i, data in tqdm(enumerate(train_dataloader), ascii=True, desc='Epoch: {}; Loss: {}'.format(
-                    epoch, loss.item())):
-                img0, img1, label = data
-                # print(img0.shape)
-                img0, img1, label = img0.to(device), img1.to(device), label.to(device)
-                optimizer.zero_grad()
-                output1, output2 = net(img0, img1)
-                loss = loss_criterion(output1, output2, label)
-                loss.backward()
-                optimizer.step()
-                if i % 10 == 0:
-                    # print("\n\rEpoch number {}; Current loss {};".format(
-                    #     epoch, loss.item()), end='\r')
-                    iteration_number += 10
-                    counter.append(iteration_number)
-                    loss_history.append(loss.item())
+        total_iterations = len(train_dataloader)
+        with trange(start_epoch + 1, config.num_epochs + 1) as iterations:
+            for epoch in iteration:
+                for i, data in enumerate(tqdm(train_dataloader)):
+                    img0, img1, label = data
+                    # print(img0.shape)
+                    img0, img1, label = img0.to(device), img1.to(device), label.to(device)
+                    optimizer.zero_grad()
+                    output1, output2 = net(img0, img1)
+                    loss = loss_criterion(output1, output2, label)
+                    loss.backward()
+                    optimizer.step()
+                    if i % 10 == 0:
+                        # print("\n\rEpoch number {}; Current loss {};".format(
+                        #     epoch, loss.item()), end='\r')
+                        iteration_number += 10
+                        counter.append(iteration_number)
+                        loss_history.append(loss.item())
+                    iterations.set_description('Epoch {0}[{1}/{2}]'.format(epoch, i, total_iterations))
+                    iterations.set_postfix(Loss=loss.item())
+                if not os.path.isdir("../models"):
+                    os.mkdir('../models')
+                if not os.path.isdir(path):
+                    os.mkdir(path)
 
-            if not os.path.isdir("../models"):
-                os.mkdir('../models')
-            if not os.path.isdir(path):
-                os.mkdir(path)
+                if min_loss > loss.item():
+                    min_loss = loss.item()
+                    save_model(os.path.join(path, 'model_best.pth'), epoch, net, optimizer)
 
-            if min_loss > loss.item():
-                min_loss = loss.item()
-                save_model(os.path.join(path, 'model_best.pth'), epoch, net, optimizer)
-
-            save_model(os.path.join(path, 'model_last.pth'), epoch, net, optimizer)
+                save_model(os.path.join(path, 'model_last.pth'), epoch, net, optimizer)
         save_plot(counter, loss_history, config.plot_name)
 
 
