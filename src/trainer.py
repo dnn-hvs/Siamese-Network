@@ -20,7 +20,7 @@ from dataset.siamese_network_dataset import SiameseNetworkDataset
 
 
 def prepare_dataset(config):
-    rdm = get_rdm()
+    rdm = get_rdm(evc=int(config.evc))
     siamese_dataset = SiameseNetworkDataset(rdm=rdm,
                                             transform=transforms.Compose([transforms.Resize((100, 100)),
                                                                           transforms.ToTensor()
@@ -123,6 +123,8 @@ def train(train_dataloader, config):
                 min_loss = loss.item()
                 save_model(model_best_loc, epoch, net, optimizer)
             save_model(model_last_loc, epoch, net, optimizer)
+        config_file = open(os.path.join(path, 'config.txt'), 'w+')
+        config_file.write(str(config))
     save_plot(counter, loss_history, config.plot_name)
 
 
