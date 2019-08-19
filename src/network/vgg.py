@@ -66,10 +66,8 @@ class VGG(nn.Module):
     def forward(self, x):
         """Extract multiple feature maps."""
         features = []
-        print(len(self.config), self.config)
         for name, layer in self.features._modules.items():
             x = layer(x)
-            print(name)
             if self.config[int(name)] == 'M':
                 features.append(x)
 
@@ -78,7 +76,6 @@ class VGG(nn.Module):
 
         for name, layer in self.classifier._modules.items():
             x = layer(x)
-            print(name)
             if int(name) in [0, 3, 6]:
                 features.append(x)
         return features
