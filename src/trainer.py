@@ -17,6 +17,7 @@ from loss.squared_euclidean_loss import EucledianLoss
 from train.model_utils import save_model, load_model
 from network.siamese_network import SiameseNetwork
 from dataset.siamese_network_dataset import SiameseNetworkDataset
+from train.data_parallel import DataParallel
 
 
 def prepare_dataset(config):
@@ -62,9 +63,7 @@ def train(train_dataloader, config):
     optimizer = optim.Adam(
         filter(lambda p: p.requires_grad, net.parameters()), lr=0.0005)
 
-    counter = []
     loss_history = []
-    iteration_number = 0
     loss = torch.Tensor([[1e10]])
     min_loss = 1e10
     net.train()
@@ -105,12 +104,7 @@ def train(train_dataloader, config):
                 loss = loss_criterion(output1, output2, label)
                 loss.backward()
                 optimizer.step()
-                if i % 10 == 0:
-                    # print("\n\rEpoch number {}; Current loss {};".format(
-                    #     epoch, loss.item()), end='\r')
-                    iteration_number += 10
-                    counter.append(iteration_number)
-                    loss_history.append(loss.item())
+
                 iterations.set_description(
                     'Epoch {0}[{1}/{2}]'.format(epoch, i + 1, total_iterations))
                 iterations.set_postfix(Loss=loss.item())
@@ -123,9 +117,10 @@ def train(train_dataloader, config):
                 min_loss = loss.item()
                 save_model(model_best_loc, epoch, net, optimizer)
             save_model(model_last_loc, epoch, net, optimizer)
+            loss_history.append(loss.item())
         config_file = open(os.path.join(path, 'config.txt'), 'w+')
         config_file.write(str(config))
-    save_plot(counter, loss_history, config.plot_name)
+    save_plot(list(range(1, epoch + 1)), loss_history, config.plot_name)
 
 
 def main(config):
