@@ -1,5 +1,7 @@
 __pycache__
-data*
+data
+data_the_data
+data_old
 .vscode
 models
 graphs
