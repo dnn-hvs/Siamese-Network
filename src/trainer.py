@@ -120,7 +120,7 @@ def train(train_dataloader, config):
             loss_history.append(loss.item())
         config_file = open(os.path.join(path, 'config.txt'), 'w+')
         config_file.write(str(config))
-    save_plot(list(range(1, epoch + 1)), loss_history, config.plot_name)
+        save_plot(list(range(1, epoch + 1)), loss_history, config.plot_name)
 
 
 def main(config):
