@@ -20,8 +20,8 @@ class Config(object):
                                  help='resume an experiment. '
                                  'Reloaded the optimizer parameter and '
                                  'set load_model to model_last.pth ')
-        self.parser.add_argument(
-            '--evc', action='store_true', help="Use 'EVC' values of the RDMs. If not mentioned, it uses 'IT' values of RDMs")
+        # self.parser.add_argument(
+        #     '--evc', action='store_true', help="Use 'EVC' values of the RDMs. If not mentioned, it uses 'IT' values of RDMs")
 
         # model
         self.parser.add_argument('-a', '--arch', default='alexnet',
