@@ -27,12 +27,12 @@ class Trainer():
         self.optimizer = optimizer
         self.loss_criterion = EucledianLoss()
 
-    def set_device(self, config, device):
+    def set_device(self, device):
         # Multiple gpus support
-        chunk_sizes = config.batch_size // len(config.gpus)
-        if len(config.gpus) > 1:
+        chunk_sizes = self.config.batch_size // len(config.gpus)
+        if len(self.config.gpus) > 1:
             net = DataParallel(
-                net, device_ids=config.gpus,
+                net, device_ids=self.config.gpus,
                 chunk_sizes=chunk_sizes).to(device)
         else:
             net = net.to(device)
@@ -51,7 +51,7 @@ class Trainer():
                 net = self.net.module
             net.eval()
             torch.cuda.empty_cache()
-
+        pbar = tqdm(total=len(data_loader), desc='Batch', position=1)
         for i, data in enumerate(train_dataloader):
             img0, img1, label = data
             img0, img1, label = img0.to(device=device, non_blocking=True), img1.to(
@@ -62,6 +62,7 @@ class Trainer():
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
+            pbar.update(1)
         return loss.item()
 
     def freeze(self):
