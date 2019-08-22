@@ -70,19 +70,19 @@ def train(train_dataloader, config, logger):
         model_last_loc = os.path.join(config.save_dir, 'model_last.pth')
     try:
         print('Starting training...')
-        total_iterations = len(train_dataloader)
-        with trange(start_epoch + 1, config.num_epochs + 1) as iterations:
-            for epoch in iterations:
-                loss = trainer.train(epoch, train_dataloader)
-                if min_loss > loss:
-                    min_loss = loss
-                    save_model(model_best_loc, epoch, net, optimizer)
-                save_model(model_last_loc, epoch, net, optimizer)
-                loss_history.append(loss)
-                logger.write('Epoch {0}: Loss = {1}\n'.format(epoch, loss))
-
+        for epoch in tqdm(range(start_epoch + 1, config.num_epochs + 1), desc='Train'):
+            loss = trainer.train(epoch, train_dataloader)
+            if min_loss > loss:
+                min_loss = loss
+                save_model(model_best_loc, epoch, net, optimizer)
+            save_model(model_last_loc, epoch, net, optimizer)
+            loss_history.append(loss)
+            logger.write('Epoch {0}: Loss = {1}\n'.format(epoch, loss))
+        print('\nSaving plot')
+        save_plot(list(range(1, len(loss_history) + 1)),
+                  loss_history, config.plot_name, config.save_dir)
     except KeyboardInterrupt:
-        print('Saving plot')
+        print('\nSaving plot')
         save_plot(list(range(1, len(loss_history) + 1)),
                   loss_history, config.plot_name, config.save_dir)
         print('Byeee...')

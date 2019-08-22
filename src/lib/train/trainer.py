@@ -64,6 +64,7 @@ class Trainer():
                 loss.backward()
                 self.optimizer.step()
             pbar.update(1)
+            pbar.set_postfix(Loss=loss.item())
         return loss.item()
 
     def freeze(self):
