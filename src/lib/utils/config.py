@@ -5,6 +5,9 @@ class Config(object):
     def __init__(self):
         self.parser = argparse.ArgumentParser()
         # basic experiment setting
+        self.parser.add_argument('task', default='fmri', help='fmri | meg')
+        self.parser.add_argument(
+            '--region', default='early', help='early | late')
         self.parser.add_argument('--train_dir', default='../data_the_data/',
                                  help='Training Dataset Directory')
         self.parser.add_argument('--test_dir', default='../data/Test_Data/',

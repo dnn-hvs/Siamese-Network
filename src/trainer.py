@@ -8,6 +8,7 @@ from torch import optim
 from tqdm import tqdm, trange
 import _init_paths
 import os
+import sys
 from datetime import datetime
 from utils.config import Config
 from utils.plot_images import imshow, save_plot
@@ -131,4 +132,6 @@ def main(config):
 if __name__ == '__main__':
     config = Config().parse()
     print(config)
+    print(sys.path)
+    exit()
     main(config)
