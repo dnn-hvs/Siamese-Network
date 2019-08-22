@@ -46,9 +46,6 @@ class Config(object):
         self.parser.add_argument('--num_workers', type=int, default=8,
                                  help='Number of workers')
 
-        self.parser.add_argument('--plot_name', default='Graph',
-                                 help='Name of the loss plot that will be saved. Default name is Graph.png')
-
         self.parser.add_argument('--num_freeze_layers', type=int, default=0,
                                  help='Number of layers to freeze')
 

@@ -16,9 +16,9 @@ def imshow(img, text=None, should_save=False):
     plt.show()
 
 
-def save_plot(iteration, loss, name, path):
+def save_plot(iteration, loss, path):
     plt.plot(iteration, loss)
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
-    plt.savefig(os.path.join(path, name+".png"))
+    plt.savefig(os.path.join(path, "loss.png"))
     return

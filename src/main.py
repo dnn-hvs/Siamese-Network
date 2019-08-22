@@ -80,11 +80,11 @@ def train(train_dataloader, config, logger):
             logger.write('Epoch {0}: Loss = {1}\n'.format(epoch, loss))
         print('\nSaving plot')
         save_plot(list(range(1, len(loss_history) + 1)),
-                  loss_history, config.plot_name, config.save_dir)
+                  loss_history, config.save_dir)
     except KeyboardInterrupt:
         print('\nSaving plot')
         save_plot(list(range(1, len(loss_history) + 1)),
-                  loss_history, config.plot_name, config.save_dir)
+                  loss_history, config.save_dir)
         print('Byeee...')
 
 
