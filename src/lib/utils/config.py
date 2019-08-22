@@ -1,4 +1,6 @@
 import argparse
+from datetime import datetime
+import os
 
 
 class Config(object):
@@ -12,6 +14,7 @@ class Config(object):
                                  help='Training Dataset Directory')
         self.parser.add_argument('--test_dir', default='../data/Test_Data/',
                                  help='Test Dataset Directory')
+
         self.parser.add_argument(
             '-f', '--foveate', action='store_true', help="Use foveated Wavelet Transform on images")
         self.parser.add_argument('--load_model', default='',
@@ -26,6 +29,8 @@ class Config(object):
         # model
         self.parser.add_argument('-a', '--arch', default='alexnet',
                                  help='model architecture. alexnet | vgg-16 | inception')
+        self.parser.add_argument('--optim', default='adam',
+                                 help='Optimiser used for training. adam|sgd')
 
         # train
         self.parser.add_argument('--lr', type=float, default=0.005,
@@ -73,6 +78,10 @@ class Config(object):
         opt.gpus = [int(gpu) for gpu in opt.gpus.split(',')]
         opt.gpus = [i for i in range(
             len(opt.gpus))] if opt.gpus[0] >= 0 else [-1]
+
+        opt.save_dir = os.path.join('../models', opt.arch + "_" +
+                                    str(datetime.now().strftime(
+                                        "%d-%b-%y--%X")))
         return opt
 
     def init(self, args=''):
