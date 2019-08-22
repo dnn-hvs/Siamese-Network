@@ -54,6 +54,6 @@ class RDMS():
         else:
             rdm[92] = self.normalize(rdms_92['MEG_RDMs_late'])
             rdms[118] = self.normalize(rdms_118['MEG_RDMs_late'])
-        rdm[92] = np.mean(rdm[92], axis=0)
-        rdm[118] = np.mean(rdm[118], axis=0)
+        rdm[92] = np.mean(((rdm[92] + 2) / 5), axis=0)
+        rdm[118] = np.mean(((rdm[118] + 2) / 5), axis=0)
         return rdm
