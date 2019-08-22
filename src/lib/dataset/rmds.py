@@ -14,7 +14,7 @@ import numpy as nu
 from scipy import stats
 
 
-class RDMS():
+class Rdms():
     def __init__(self, config):
         self.config = config
 
@@ -30,7 +30,7 @@ class RDMS():
             input_zscore.append(stats.zscore(input[i], axis=None))
         return np.array(input_zscore)
 
-    def get_fmri_rdm(region):
+    def get_fmri_rdm(self, region):
         rdm = {}
         rdms_92 = load('../data/Training_Data/92_Image_Set/target_fmri.mat')
         rdms_118 = load('../data/Training_Data/118_Image_Set/target_fmri.mat')
@@ -44,7 +44,7 @@ class RDMS():
         rdm[118] = np.mean(rdm[118], axis=0)
         return rdm
 
-    def get_meg_rdm(region):
+    def get_meg_rdm(self, region):
         rdm = {}
         rdms_92 = load('../data/Training_Data/92_Image_Set/target_meg.mat')
         rdms_118 = load('../data/Training_Data/118_Image_Set/target_meg.mat')
