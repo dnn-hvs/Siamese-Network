@@ -21,24 +21,60 @@ from train.data_parallel import DataParallel
 
 
 class Trainer():
-    def __init__(self, config):
+    def __init__(self, config, net, optimizer):
         self.config = config
+        self.net = net
+        self.optimizer = optimizer
+        self.loss_criterion = EucledianLoss()
 
-    def prepare_dataset(config):
-        rdm = get_rdm(evc=int(config.evc))
-        siamese_dataset = SiameseNetworkDataset(rdm=rdm,
-                                                transform=transforms.Compose([transforms.Resize((100, 100)),
-                                                                              transforms.ToTensor()
-                                                                              ]), should_invert=False, apply_foveate=config.foveate)
+    def set_device(self, config, device):
+        # Multiple gpus support
+        chunk_sizes = config.batch_size // len(config.gpus)
+        if len(config.gpus) > 1:
+            net = DataParallel(
+                net, device_ids=config.gpus,
+                chunk_sizes=chunk_sizes).to(device)
+        else:
+            net = net.to(device)
+        return
 
-        train_dataloader = DataLoader(siamese_dataset,
-                                      shuffle=True,
-                                      num_workers=config.num_workers,
-                                      batch_size=config.batch_size)
-        return train_dataloader
+    def train(epoch, data_loader):
+        return self.run_epoch('train', epoch, data_loader)
 
-    def train():
+    def run_epoch(self, phase, epoch, data_loader):
+        total_iterations = len(train_dataloader)
+        net = self.net
+        if phase is 'train':
+            net.train()
+        else:
+            if len(self.config.gpus) > 1:
+                net = self.net.module
+            net.eval()
+            torch.cuda.empty_cache()
 
-    def run_epoch():
+        for i, data in enumerate(train_dataloader):
+            img0, img1, label = data
+            img0, img1, label = img0.to(device=device, non_blocking=True), img1.to(
+                device=device, non_blocking=True), label.to(device=device, non_blocking=True)
+            output1, output2 = net(img0, img1)
+            loss = self.loss_criterion(output1, output2, label)
+            if phase is 'train':
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+        return loss.item()
 
-    def log():
+    def freeze(self):
+        ct = 0
+        for name, child in self.net.named_children():
+            for name2, params in self.net.named_parameters():
+                if self.config.gt:
+                    if ct > self.config.num_freeze_layers*2:
+                        print("Freezing layer:", name2)
+                        params.requires_grad = False
+                else:
+                    if ct < self.config.num_freeze_layers*2:
+                        print("Freezing layer:", name2)
+                        params.requires_grad = False
+                ct += 1
+        return
