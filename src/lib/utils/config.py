@@ -78,10 +78,14 @@ class Config(object):
         opt.gpus = [int(gpu) for gpu in opt.gpus.split(',')]
         opt.gpus = [i for i in range(
             len(opt.gpus))] if opt.gpus[0] >= 0 else [-1]
-
-        opt.save_dir = os.path.join('../models', opt.arch + "_" +
-                                    str(datetime.now().strftime(
-                                        "%d-%b-%y--%X")))
+        if opt.foveate:
+            opt.save_dir = os.path.join('../models', opt.arch, opt.task, opt.region, 'Foveated',
+                                        str(datetime.now().strftime(
+                                            "%d-%b-%y--%X")))
+        else:
+            opt.save_dir = os.path.join('../models', opt.arch, opt.task, opt.region, 'Non_Foveated',
+                                        str(datetime.now().strftime(
+                                            "%d-%b-%y--%X")))
         return opt
 
     def init(self, args=''):
