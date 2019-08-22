@@ -78,11 +78,11 @@ def train(train_dataloader, config, logger):
             save_model(model_last_loc, epoch, net, optimizer)
             loss_history.append(loss)
             logger.write('Epoch {0}: Loss = {1}\n'.format(epoch, loss))
-        print('\nSaving plot')
+        print('\n\nSaving plot')
         save_plot(list(range(1, len(loss_history) + 1)),
                   loss_history, config.save_dir)
     except KeyboardInterrupt:
-        print('\nSaving plot')
+        print('\n\nSaving plot')
         save_plot(list(range(1, len(loss_history) + 1)),
                   loss_history, config.save_dir)
         print('Byeee...')

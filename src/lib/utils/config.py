@@ -49,7 +49,7 @@ class Config(object):
         self.parser.add_argument('--num_freeze_layers', type=int, default=0,
                                  help='Number of layers to freeze')
 
-        self.parser.add_argument('-gt', action='store_true',
+        self.parser.add_argument('--gt', action='store_true',
                                  help='If true, the layers greater than num_freeze_layers will be frozen , else \
                                         the  layers lesser than num_freeze_layers will be frozen')
 
