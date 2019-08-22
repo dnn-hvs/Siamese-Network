@@ -1,6 +1,7 @@
 import argparse
 from datetime import datetime
 import os
+import torch
 
 
 class Config(object):
@@ -86,6 +87,8 @@ class Config(object):
             opt.save_dir = os.path.join('../models', opt.arch, opt.task, opt.region, 'Non_Foveated',
                                         str(datetime.now().strftime(
                                             "%d-%b-%y--%X")))
+        os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
+        opt.device = torch.device('cuda' if opt.gpus[0] >= 0 else 'cpu')
         return opt
 
     def init(self, args=''):

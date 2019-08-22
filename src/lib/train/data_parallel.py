@@ -5,7 +5,7 @@ from torch.nn.parallel.replicate import replicate
 from torch.nn.parallel.parallel_apply import parallel_apply
 
 
-from scatter_gather import scatter_kwargs
+from .scatter_gather import scatter_kwargs
 
 
 class _DataParallel(Module):

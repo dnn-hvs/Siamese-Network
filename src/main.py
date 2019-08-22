@@ -41,8 +41,6 @@ def prepare_dataset(config):
 
 
 def train(train_dataloader, config, logger):
-    os.environ['CUDA_VISIBLE_DEVICES'] = config.gpus_str
-    device = torch.device('cuda' if config.gpus[0] >= 0 else 'cpu')
     net = SiameseNetwork(config)
 
     if config.optim == "adam":
@@ -58,8 +56,8 @@ def train(train_dataloader, config, logger):
         net, optimizer, start_epoch = load_model(
             net, config.load_model, optimizer, config.resume, config.lr)
 
-    trainer = Trainer(config, net, optimizer)
-    trainer.set_device(device)
+    trainer = Trainer(config, net, optimizer, logger)
+    trainer.set_device()
     trainer.freeze()
 
     loss_history = []

@@ -1,13 +1,13 @@
 import torch.nn as nn
 
 import torch
-from vgg import *
-from resnet import *
-from alexnet import *
-from squeezenet import *
-from densenet import *
-from inceptionv3 import *
-from googlenet import *
+from .vgg import *
+from .resnet import *
+from .alexnet import *
+from .squeezenet import *
+from .densenet import *
+from .inceptionv3 import *
+from .googlenet import *
 
 models = {
     'alexnet': AlexNet,

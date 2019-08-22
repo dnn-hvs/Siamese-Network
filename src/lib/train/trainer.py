@@ -21,27 +21,28 @@ from train.data_parallel import DataParallel
 
 
 class Trainer():
-    def __init__(self, config, net, optimizer):
+    def __init__(self, config, net, optimizer, logger):
         self.config = config
         self.net = net
         self.optimizer = optimizer
-        self.loss_criterion = EucledianLoss()
+        self.logger = logger
+        self.loss_criterion = EucledianLoss(logger)
 
-    def set_device(self, device):
+    def set_device(self):
         # Multiple gpus support
-        chunk_sizes = self.config.batch_size // len(config.gpus)
+        chunk_sizes = self.config.batch_size // len(self.config.gpus)
         if len(self.config.gpus) > 1:
             net = DataParallel(
                 net, device_ids=self.config.gpus,
-                chunk_sizes=chunk_sizes).to(device)
+                chunk_sizes=chunk_sizes).to(self.config.device)
         else:
-            net = net.to(device)
+            net = self.net.to(self.config.device)
         return
 
-    def train(epoch, data_loader):
-        return self.run_epoch('train', epoch, data_loader)
+    def train(self, epoch, train_dataloader):
+        return self.run_epoch('train', epoch, train_dataloader)
 
-    def run_epoch(self, phase, epoch, data_loader):
+    def run_epoch(self, phase, epoch, train_dataloader):
         total_iterations = len(train_dataloader)
         net = self.net
         if phase is 'train':
@@ -51,11 +52,11 @@ class Trainer():
                 net = self.net.module
             net.eval()
             torch.cuda.empty_cache()
-        pbar = tqdm(total=len(data_loader), desc='Batch', position=1)
+        pbar = tqdm(total=len(train_dataloader), desc='Batch', position=1)
         for i, data in enumerate(train_dataloader):
             img0, img1, label = data
-            img0, img1, label = img0.to(device=device, non_blocking=True), img1.to(
-                device=device, non_blocking=True), label.to(device=device, non_blocking=True)
+            img0, img1, label = img0.to(device=self.config.device, non_blocking=True), img1.to(
+                device=self.config.device, non_blocking=True), label.to(device=self.config.device, non_blocking=True)
             output1, output2 = net(img0, img1)
             loss = self.loss_criterion(output1, output2, label)
             if phase is 'train':

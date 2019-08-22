@@ -10,7 +10,7 @@ from datetime import datetime
 from utils.read_matfile import load
 from dataset.siamese_network_dataset import SiameseNetworkDataset
 from utils.logger import Logger
-import numpy as nu
+import numpy as np
 from scipy import stats
 
 
@@ -24,7 +24,7 @@ class Rdms():
         else:
             return self.get_meg_rdm(self.config.refion)
 
-    def normalize(self):
+    def normalize(self, input):
         input_zscore = []
         for i in range(15):
             input_zscore.append(stats.zscore(input[i], axis=None))
@@ -36,10 +36,10 @@ class Rdms():
         rdms_118 = load('../data/Training_Data/118_Image_Set/target_fmri.mat')
         if region == 'early':
             rdm[92] = self.normalize(rdms_92['EVC_RDMs'])
-            rdms[118] = self.normalize(rdms_118['EVC_RDMs'])
+            rdm[118] = self.normalize(rdms_118['EVC_RDMs'])
         else:
             rdm[92] = self.normalize(rdms_92['IT_RDMs'])
-            rdms[118] = self.normalize(rdms_118['IT_RDMs'])
+            rdm[118] = self.normalize(rdms_118['IT_RDMs'])
         rdm[92] = np.mean(rdm[92], axis=0)
         rdm[118] = np.mean(rdm[118], axis=0)
         return rdm
