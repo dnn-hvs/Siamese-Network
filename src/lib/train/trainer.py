@@ -31,6 +31,7 @@ class Trainer():
     def set_device(self):
         # Multiple gpus support
         chunk_sizes = self.config.batch_size // len(self.config.gpus)
+        chunk_sizes = [chunk_sizes] * len(self.config.gpus)
         if len(self.config.gpus) > 1:
             net = DataParallel(
                 net, device_ids=self.config.gpus,
