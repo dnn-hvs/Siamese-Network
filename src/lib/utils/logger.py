@@ -65,8 +65,3 @@ class Logger(object):
 
     def close(self):
         self.log.close()
-
-    # def scalar_summary(self, tag, value, step):
-    #     """Log a scalar variable."""
-    #     if USE_TENSORBOARD:
-    #         self.writer.add_scalar(tag, value, step)

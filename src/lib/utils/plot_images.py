@@ -16,9 +16,9 @@ def imshow(img, text=None, should_save=False):
     plt.show()
 
 
-def save_plot(iteration, loss, name):
+def save_plot(iteration, loss, name, path):
     plt.plot(iteration, loss)
-    if not os.path.isdir("../graphs"):
-        os.mkdir("../graphs")
-
-    plt.savefig("../graphs/"+name+".png")
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.savefig(os.path.join(path, name+".png"))
+    return
