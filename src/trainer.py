@@ -8,7 +8,6 @@ from torch import optim
 from tqdm import tqdm, trange
 import _init_paths
 import os
-from datetime import datetime
 from utils.config import Config
 from utils.plot_images import imshow, save_plot
 from utils.read_matfile import get_rdm
@@ -18,13 +17,16 @@ from train.model_utils import save_model, load_model
 from network.siamese_network import SiameseNetwork
 from dataset.siamese_network_dataset import SiameseNetworkDataset
 from train.data_parallel import DataParallel
+from utils.logger import Logger
 
 
 def prepare_dataset(config):
     rdm = get_rdm(evc=int(config.evc))
     siamese_dataset = SiameseNetworkDataset(rdm=rdm,
                                             transform=transforms.Compose([transforms.Resize((100, 100)),
-                                                                          transforms.ToTensor()
+                                                                          transforms.ToTensor(),
+                                                                          transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[
+                                                                                               0.229, 0.224, 0.225])
                                                                           ]), should_invert=False, apply_foveate=config.foveate)
 
     train_dataloader = DataLoader(siamese_dataset,
@@ -34,14 +36,14 @@ def prepare_dataset(config):
     return train_dataloader
 
 
-def train(train_dataloader, config):
+def train(train_dataloader, config, logger):
     os.environ['CUDA_VISIBLE_DEVICES'] = config.gpus_str
     device = torch.device('cuda' if config.gpus[0] >= 0 else 'cpu')
 
     net = SiameseNetwork(config)
     net.to(device)
 
-    loss_criterion = EucledianLoss()
+    loss_criterion = EucledianLoss(logger)
     # loss_criterion = ContrastiveLoss()
 
     # print(net.named_children())
@@ -59,9 +61,12 @@ def train(train_dataloader, config):
                     params.requires_grad = False
             ct += 1
 
-    # print(net.parameters())
-    optimizer = optim.Adam(
-        filter(lambda p: p.requires_grad, net.parameters()), lr=0.0005)
+    if config.optim == "adam":
+        optimizer = optim.Adam(
+            filter(lambda p: p.requires_grad, net.parameters()), lr=config.lr)
+    elif config.optim == "sgd":
+        optimizer = optim.SGD(filter(lambda p: p.requires_grad,
+                                     net.parameters()), lr=config.lr, momentum=0.78)
 
     loss_history = []
     loss = torch.Tensor([[1e10]])
@@ -83,12 +88,10 @@ def train(train_dataloader, config):
     else:
         net = net.to(device)
     if config.load_model != '' and config.resume:
-        model_best_loc = model_last_loc = path = config.load_model
+        model_best_loc = model_last_loc = config.load_model
     else:
-        path = os.path.join('../models', config.arch + "_" +
-                            str(datetime.now().strftime("%d-%b-%y--%X")))
-        model_best_loc = os.path.join(path, 'model_best.pth')
-        model_last_loc = os.path.join(path, 'model_last.pth')
+        model_best_loc = os.path.join(config.save_dir, 'model_best.pth')
+        model_last_loc = os.path.join(config.save_dir, 'model_last.pth')
 
     print('Starting training...')
     total_iterations = len(train_dataloader)
@@ -96,7 +99,6 @@ def train(train_dataloader, config):
         for epoch in iterations:
             for i, data in enumerate(train_dataloader):
                 img0, img1, label = data
-                # print(img0.shape)
                 img0, img1, label = img0.to(device), img1.to(
                     device), label.to(device)
                 optimizer.zero_grad()
@@ -108,27 +110,23 @@ def train(train_dataloader, config):
                 iterations.set_description(
                     'Epoch {0}[{1}/{2}]'.format(epoch, i + 1, total_iterations))
                 iterations.set_postfix(Loss=loss.item())
-            if not os.path.isdir("../models"):
-                os.mkdir('../models')
-            if not os.path.isdir(path):
-                os.mkdir(path)
 
             if min_loss > loss.item():
                 min_loss = loss.item()
                 save_model(model_best_loc, epoch, net, optimizer)
             save_model(model_last_loc, epoch, net, optimizer)
             loss_history.append(loss.item())
-        config_file = open(os.path.join(path, 'config.txt'), 'w+')
-        config_file.write(str(config))
-        save_plot(list(range(1, epoch + 1)), loss_history, config.plot_name)
+            save_plot(list(range(1, epoch + 1)),
+                      loss_history, config.plot_name)
 
 
 def main(config):
+    logger = Logger(config)
     train_dataloader = prepare_dataset(config)
-    train(train_dataloader, config)
+    train(train_dataloader, config, logger)
+    logger.close()
 
 
 if __name__ == '__main__':
     config = Config().parse()
-    print(config)
     main(config)
