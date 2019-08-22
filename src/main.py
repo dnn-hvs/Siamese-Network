@@ -36,38 +36,17 @@ def prepare_dataset(config):
 
 
 def train(train_dataloader, config):
+    # Set device
     os.environ['CUDA_VISIBLE_DEVICES'] = config.gpus_str
     device = torch.device('cuda' if config.gpus[0] >= 0 else 'cpu')
 
+    print('Creating model...')
     net = SiameseNetwork(config)
-    net.to(device)
+    # net.to(device)
+    optimizer = optim.Adam(
+        filter(lambda p: p.requires_grad, net.parameters()), lr=config.lr)
 
     loss_criterion = EucledianLoss()
-    # loss_criterion = ContrastiveLoss()
-
-    # print(net.named_children())
-    # Freezing the first few layers. Here I am freezing the first 7 layers ct = 0
-    ct = 0
-    for name, child in net.named_children():
-        for name2, params in net.named_parameters():
-            if config.gt:
-                if ct > config.num_freeze_layers*2:
-                    print("Freezing layer:", name2)
-                    params.requires_grad = False
-            else:
-                if ct < config.num_freeze_layers*2:
-                    print("Freezing layer:", name2)
-                    params.requires_grad = False
-            ct += 1
-
-    # print(net.parameters())
-    optimizer = optim.Adam(
-        filter(lambda p: p.requires_grad, net.parameters()), lr=0.0005)
-
-    loss_history = []
-    loss = torch.Tensor([[1e10]])
-    min_loss = 1e10
-    net.train()
 
     # Resume the model if needed
     start_epoch = 0
@@ -75,14 +54,41 @@ def train(train_dataloader, config):
         net, optimizer, start_epoch = load_model(
             net, config.load_model, optimizer, config.resume, config.lr)
 
+    Trainer = train_factory[config.task]
+    trainer = Trainer(config, net, optimizer)
+    trainer.set_device(config, device)
+    train.freeze()
+    train_dataloader = prepare_dataset(config)
+
+  # print(net.named_children())
+  # Freezing the first few layers. Here I am freezing the first 7 layers ct = 0
+#   ct = 0
+#    for name, child in net.named_children():
+#         for name2, params in net.named_parameters():
+#             if config.gt:
+#                 if ct > config.num_freeze_layers*2:
+#                     print("Freezing layer:", name2)
+#                     params.requires_grad = False
+#             else:
+#                 if ct < config.num_freeze_layers*2:
+#                     print("Freezing layer:", name2)
+#                     params.requires_grad = False
+#             ct += 1
+
+    # print(net.parameters())
+
+    loss_history = []
+    # loss = torch.Tensor([[1e10]])
+    min_loss = 1e10
+
     # Multiple gpus support
-    chunk_sizes = config.batch_size // len(config.gpus)
-    if len(config.gpus) > 1:
-        net = DataParallel(
-            net, device_ids=config.gpus,
-            chunk_sizes=chunk_sizes).to(device)
-    else:
-        net = net.to(device)
+    # chunk_sizes = config.batch_size // len(config.gpus)
+    # if len(config.gpus) > 1:
+    #     net = DataParallel(
+    #         net, device_ids=config.gpus,
+    #         chunk_sizes=chunk_sizes).to(device)
+    # else:
+    #     net = net.to(device)
     if config.load_model != '' and config.resume:
         model_best_loc = model_last_loc = path = config.load_model
     else:
@@ -92,7 +98,7 @@ def train(train_dataloader, config):
         model_last_loc = os.path.join(path, 'model_last.pth')
 
     print('Starting training...')
-    total_iterations = len(train_dataloader)
+    # total_iterations = len(train_dataloader)
     with trange(start_epoch + 1, config.num_epochs + 1) as iterations:
         for epoch in iterations:
             for i, data in enumerate(train_dataloader):
@@ -125,13 +131,10 @@ def train(train_dataloader, config):
 
 
 def main(config):
-    train_dataloader = prepare_dataset(config)
     train(train_dataloader, config)
 
 
 if __name__ == '__main__':
     config = Config().parse()
     print(config)
-    print(sys.path)
-    exit()
     main(config)
