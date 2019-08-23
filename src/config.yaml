@@ -1,0 +1,10 @@
+alex:
+  arch: alexnet
+  lr: 0.05
+  gpus:
+    - 0
+    - 1
+  epochs: 300
+  batch_size: 32
+  num_freeze_layers: 5
+  num_workers: 30
