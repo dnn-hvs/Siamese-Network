@@ -49,10 +49,6 @@ class Config(object):
         self.parser.add_argument('--num_freeze_layers', type=int, default=0,
                                  help='Number of layers to freeze')
 
-        self.parser.add_argument('--gt', action='store_true',
-                                 help='If true, the layers greater than num_freeze_layers will be frozen , else \
-                                        the  layers lesser than num_freeze_layers will be frozen')
-
         # self.parser.add_argument('--lr_step', type=str, default='90,120',
         #                          help='drop learning rate by 10.')
 

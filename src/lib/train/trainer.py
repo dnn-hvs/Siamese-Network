@@ -72,7 +72,7 @@ class Trainer():
         ct = 0
         for name, child in self.net.named_children():
             for name2, params in self.net.named_parameters():
-                if self.config.gt:
+                if self.config.region == 'early':
                     if ct > self.config.num_freeze_layers*2:
                         print("Freezing layer:", name2)
                         params.requires_grad = False
