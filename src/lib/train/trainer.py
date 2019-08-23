@@ -66,6 +66,8 @@ class Trainer():
         return loss.item()
 
     def freeze(self):
+        if not self.config.num_freeze_layers:
+            return
         ct = 0
         for name, child in self.net.named_children():
             for name2, params in self.net.named_parameters():
