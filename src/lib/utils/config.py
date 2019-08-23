@@ -75,12 +75,12 @@ class Config(object):
         if opt.foveate:
             path = os.path.join('../models', opt.arch,
                                 opt.task, opt.region, 'Foveated')
-            new_exp = sum(os.path.isdir(i) for i in os.listdir())
+            new_exp = str(sum(os.path.isdir(i) for i in os.listdir()))
             opt.save_dir = os.path.join(path, new_exp)
         else:
             path = os.path.join('../models', opt.arch,
                                 opt.task, opt.region, 'Non_Foveated')
-            new_exp = sum(os.path.isdir(i) for i in os.listdir())
+            new_exp = str(sum(os.path.isdir(i) for i in os.listdir()))
             opt.save_dir = os.path.join(path, new_exp)
 
         os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
