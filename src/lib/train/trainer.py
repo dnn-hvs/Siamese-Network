@@ -34,7 +34,7 @@ class Trainer():
         chunk_sizes = [chunk_sizes] * len(self.config.gpus)
         if len(self.config.gpus) > 1:
             net = DataParallel(
-                net, device_ids=self.config.gpus,
+                self.net, device_ids=self.config.gpus,
                 chunk_sizes=chunk_sizes).to(self.config.device)
         else:
             net = self.net.to(self.config.device)
@@ -44,7 +44,6 @@ class Trainer():
         return self.run_epoch('train', epoch, train_dataloader)
 
     def run_epoch(self, phase, epoch, train_dataloader):
-        total_iterations = len(train_dataloader)
         net = self.net
         if phase is 'train':
             net.train()
