@@ -77,13 +77,16 @@ class Config(object):
         opt.gpus = [i for i in range(
             len(opt.gpus))] if opt.gpus[0] >= 0 else [-1]
         if opt.foveate:
-            opt.save_dir = os.path.join('../models', opt.arch, opt.task, opt.region, 'Foveated',
-                                        str(datetime.now().strftime(
-                                            "%d-%b-%y--%X")))
+            path = os.path.join('../models', opt.arch,
+                                opt.task, opt.region, 'Foveated')
+            new_exp = sum(os.path.isdir(i) for i in os.listdir())
+            opt.save_dir = os.path.join(path, new_exp)
         else:
-            opt.save_dir = os.path.join('../models', opt.arch, opt.task, opt.region, 'Non_Foveated',
-                                        str(datetime.now().strftime(
-                                            "%d-%b-%y--%X")))
+            path = os.path.join('../models', opt.arch,
+                                opt.task, opt.region, 'Non_Foveated')
+            new_exp = sum(os.path.isdir(i) for i in os.listdir())
+            opt.save_dir = os.path.join(path, new_exp)
+
         os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
         opt.device = torch.device('cuda' if opt.gpus[0] >= 0 else 'cpu')
         return opt
