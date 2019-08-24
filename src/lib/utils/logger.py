@@ -54,13 +54,15 @@ class Logger(object):
         self.start_line = True
 
     def write(self, txt, log=True):
+        if not log:
+            self.epoch_loss_file.write(txt)
+            # self.epoch_loss_file.flush
+
         if self.start_line:
             time_str = time.strftime('%Y-%m-%d-%H-%M')
             self.log.write('{}: {}'.format(time_str, txt))
-        elif log:
-            self.log.write(txt)
         else:
-            self.epoch_loss_file.write(txt)
+            self.log.write(txt)
 
         self.start_line = False
         if '\n' in txt:
@@ -69,3 +71,4 @@ class Logger(object):
 
     def close(self):
         self.log.close()
+        self.epoch_loss_file.close()
