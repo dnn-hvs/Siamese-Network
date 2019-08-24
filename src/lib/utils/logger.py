@@ -46,18 +46,22 @@ class Logger(object):
             os.mkdir(log_dir)
 
         self.log = open(log_dir + '/log.txt', 'w')
+        self.epoch_loss_file = open(log_dir+'/epoch_vs_loss.txt', 'w')
         try:
             os.system('mv {}/config.txt {}/'.format(config.save_dir, log_dir))
         except:
             pass
         self.start_line = True
 
-    def write(self, txt):
+    def write(self, txt, log=True):
         if self.start_line:
             time_str = time.strftime('%Y-%m-%d-%H-%M')
             self.log.write('{}: {}'.format(time_str, txt))
-        else:
+        elif log:
             self.log.write(txt)
+        else:
+            self.epoch_loss_file.write(txt)
+
         self.start_line = False
         if '\n' in txt:
             self.start_line = True

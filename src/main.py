@@ -77,7 +77,7 @@ def train(train_dataloader, config, logger):
                 save_model(model_best_loc, epoch, net, optimizer)
             save_model(model_last_loc, epoch, net, optimizer)
             loss_history.append(loss)
-            logger.write('Epoch {0}: Loss = {1}\n'.format(epoch, loss))
+            logger.write('Epoch {0}: Loss = {1}\n'.format(epoch, loss), False)
         print('\n\nSaving plot')
         save_plot(list(range(1, len(loss_history) + 1)),
                   loss_history, config.save_dir)
