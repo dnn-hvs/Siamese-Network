@@ -75,13 +75,17 @@ class Config(object):
         if opt.foveate:
             path = os.path.join('../models', opt.arch,
                                 opt.task, opt.region, 'Foveated')
-            new_exp = str(sum(os.path.isdir(i) for i in os.listdir()))
-            opt.save_dir = os.path.join(path, new_exp)
+
         else:
             path = os.path.join('../models', opt.arch,
                                 opt.task, opt.region, 'Non_Foveated')
-            new_exp = str(sum(os.path.isdir(i) for i in os.listdir()))
-            opt.save_dir = os.path.join(path, new_exp)
+
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        new_exp = str(sum(os.path.isdir(os.path.join(path, i))
+                          for i in os.listdir(path))+1)
+        opt.save_dir = os.path.join(path, new_exp)
 
         os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
         opt.device = torch.device('cuda' if opt.gpus[0] >= 0 else 'cpu')
