@@ -40,6 +40,15 @@ def prepare_dataset(config):
     return train_dataloader
 
 
+def get_name(config):
+    name = "_"
+    name += "0" if config.task == "fmri" else "1"
+    name += "0" if config.region == "early" else "1"
+    name += "0" if config.foveate else "1"
+    name += "0" if config.num_freeze_layers == 0 else "1"
+    return name
+
+
 def train(train_dataloader, config, logger):
     net = SiameseNetwork(config)
 
@@ -66,8 +75,10 @@ def train(train_dataloader, config, logger):
     if config.load_model != '' and config.resume:
         model_best_loc = model_last_loc = config.load_model
     else:
-        model_best_loc = os.path.join(config.save_dir, 'model_best.pth')
-        model_last_loc = os.path.join(config.save_dir, 'model_last.pth')
+        model_best_loc = os.path.join(
+            config.save_dir, config.arch+get_name(config)+'_best.pth')
+        model_last_loc = os.path.join(
+            config.save_dir, config.arch+get_name(config)+'_last.pth')
     try:
         print('Starting training...')
         for epoch in tqdm(range(start_epoch + 1, config.num_epochs + 1), desc='Train'):
