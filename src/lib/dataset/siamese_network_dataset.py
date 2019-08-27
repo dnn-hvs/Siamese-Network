@@ -32,11 +32,11 @@ class SiameseNetworkDataset(Dataset):
     def get_rdm_pair(self, img1_name, img2_name):
         img_num1 = int(img1_name.split("/image_")[1].split(".jpg")[0])
         img_num2 = int(img2_name.split("/image_")[1].split(".jpg")[0])
-
-        if(img1_name.find("92_Image_Set") != -1):
-            rdm = self.rdm[92]
+        if img1_name.find("92_images") != -1:
+            rdm = self.rdm['92']
         else:
-            rdm = self.rdm[118]
+            rdm = self.rdm['118']
+
         return (torch.from_numpy(np.array([rdm[img_num1-1][img_num2-1]], dtype=np.float32)))
 
     def modify_image(self, img_path):

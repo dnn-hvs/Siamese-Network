@@ -22,7 +22,7 @@ class Rdms():
         if self.config.task == 'fmri':
             return self.get_fmri_rdm(self.config.region)
         else:
-            return self.get_meg_rdm(self.config.refion)
+            return self.get_meg_rdm(self.config.region)
 
     def normalize(self, input):
         input_zscore = []
@@ -35,13 +35,13 @@ class Rdms():
         rdms_92 = load('../data/Training_Data/92_Image_Set/target_fmri.mat')
         rdms_118 = load('../data/Training_Data/118_Image_Set/target_fmri.mat')
         if region == 'early':
-            rdm[92] = self.normalize(rdms_92['EVC_RDMs'])
-            rdm[118] = self.normalize(rdms_118['EVC_RDMs'])
+            rdm['92'] = self.normalize(rdms_92['EVC_RDMs'])
+            rdm['118'] = self.normalize(rdms_118['EVC_RDMs'])
         else:
-            rdm[92] = self.normalize(rdms_92['IT_RDMs'])
-            rdm[118] = self.normalize(rdms_118['IT_RDMs'])
-        rdm[92] = np.mean(rdm[92], axis=0)
-        rdm[118] = np.mean(rdm[118], axis=0)
+            rdm['92'] = self.normalize(rdms_92['IT_RDMs'])
+            rdm['118'] = self.normalize(rdms_118['IT_RDMs'])
+        rdm['92'] = np.mean(rdm['92'], axis=0)
+        rdm['118'] = np.mean(rdm['118'], axis=0)
         return rdm
 
     def get_meg_rdm(self, region):
@@ -49,11 +49,11 @@ class Rdms():
         rdms_92 = load('../data/Training_Data/92_Image_Set/target_meg.mat')
         rdms_118 = load('../data/Training_Data/118_Image_Set/target_meg.mat')
         if region == 'early':
-            rdm[92] = self.normalize(rdms_92['MEG_RDMs_early'])
-            rdms[118] = self.normalize(rdms_118['MEG_RDMs_early'])
+            rdm['92'] = self.normalize(rdms_92['MEG_RDMs_early'])
+            rdm['118'] = self.normalize(rdms_118['MEG_RDMs_early'])
         else:
-            rdm[92] = self.normalize(rdms_92['MEG_RDMs_late'])
-            rdms[118] = self.normalize(rdms_118['MEG_RDMs_late'])
-        rdm[92] = np.mean(((rdm[92] + 2) / 5), axis=0)
-        rdm[118] = np.mean(((rdm[118] + 2) / 5), axis=0)
+            rdm['92'] = self.normalize(rdms_92['MEG_RDMs_late'])
+            rdm['118'] = self.normalize(rdms_118['MEG_RDMs_late'])
+        rdm['92'] = np.mean(np.mean(((rdm['92'] + 2) / 5), axis=1), axis=0)
+        rdm['118'] = np.mean(np.mean(((rdm['118'] + 2) / 5), axis=1), axis=0)
         return rdm
