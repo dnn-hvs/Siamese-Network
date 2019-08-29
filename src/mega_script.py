@@ -24,6 +24,7 @@ with open('config.yaml') as ymfile:
                     args['resume'] = False
                     args['lr'] = cfg[arch]['lr']
                     args['gpus'] = cfg[arch]['gpus']
+                    args['optim'] = cfg[arch]['optim']
                     args['num_epochs'] = int(cfg[arch]['epochs'])
                     args['batch_size'] = int(cfg[arch]['batch_size'])
                     args['num_workers'] = int(

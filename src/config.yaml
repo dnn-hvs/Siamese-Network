@@ -8,3 +8,4 @@ alex:
   batch_size: 32
   num_freeze_layers: 5
   num_workers: 30
+  optim: adam
