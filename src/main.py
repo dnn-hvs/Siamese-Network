@@ -42,10 +42,13 @@ def prepare_dataset(config):
 
 def get_name(config):
     name = "_"
-    name += "0" if config.task == "fmri" else "1"
-    name += "0" if config.region == "early" else "1"
-    name += "0" if config.foveate else "1"
-    name += "0" if config.num_freeze_layers == 0 else "1"
+    name += config.task
+    name = "_"
+    name += config.region
+    name = "_"
+    name += "fov" if config.foveate else "nofov"
+    name = "_"
+    name += "unfrozen" if config.num_freeze_layers == 0 else "frozen"
     return name
 
 
