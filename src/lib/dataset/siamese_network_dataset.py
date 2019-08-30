@@ -15,9 +15,12 @@ class SiameseNetworkDataset(Dataset):
         self.should_invert = should_invert
         self.rdm = rdm
         self.apply_foveate = apply_foveate
-        self.image_list = np.array(
-            [(os.path.join(dirpath, filenames[0]), os.path.join(dirpath, filenames[1])) for dirpath, dirnames, filenames in os.walk('../data_the_data') if filenames])
-        # print(len(self.image_list))
+        if apply_foveate:
+            self.image_list = np.array(
+                [(os.path.join(dirpath, filenames[0]), os.path.join(dirpath, filenames[1])) for dirpath, dirnames, filenames in os.walk('../data_foveated') if filenames])
+        else:
+            self.image_list = np.array(
+                [(os.path.join(dirpath, filenames[0]), os.path.join(dirpath, filenames[1])) for dirpath, dirnames, filenames in os.walk('../data_the_data') if filenames])
 
     def __getitem__(self, index):
         img0_path, img1_path = random.choice(self.image_list)
@@ -40,12 +43,13 @@ class SiameseNetworkDataset(Dataset):
         return (torch.from_numpy(np.array([rdm[img_num1-1][img_num2-1]], dtype=np.float32)))
 
     def modify_image(self, img_path):
-        img = np.asarray(Image.open(img_path).convert("L"))
-        if self.apply_foveate:
-            img = foveate.foveat_img(
-                img, [[int(img.shape[1]/2), int(img.shape[0]/2)]])
-        img = np.dstack((img, img, img))
-        img = Image.fromarray(np.uint8(img))
+        # img = np.asarray(Image.open(img_path).convert("L"))
+        img = Image.open(img_path).convert("L")
+        # if self.apply_foveate:
+        #     img = foveate.foveat_img(
+        #         img, [[int(img.shape[1]/2), int(img.shape[0]/2)]])
+        # img = np.dstack((img, img, img))
+        # img = Image.fromarray(np.uint8(img))
         if self.transform is not None:
             img = self.transform(img)
 
