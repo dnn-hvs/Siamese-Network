@@ -43,11 +43,11 @@ def prepare_dataset(config):
 def get_name(config):
     name = "_"
     name += config.task
-    name = "_"
+    name += "_"
     name += config.region
-    name = "_"
+    name += "_"
     name += "fov" if config.foveate else "nofov"
-    name = "_"
+    name += "_"
     name += "unfrozen" if config.num_freeze_layers == 0 else "frozen"
     return name
 
