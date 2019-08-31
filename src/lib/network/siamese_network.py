@@ -34,7 +34,7 @@ models = {
 class SiameseNetwork(nn.Module):
     def __init__(self, config):
         super(SiameseNetwork, self).__init__()
-        if config.arch == 'alexnet':
+        if config.arch == 'alexnet' or config.arch == 'sqnet1_1' or config.arch == 'sqnet1_0':
             self.network = models[config.arch]()
         else:
             self.network = models[config.arch](pretrained=True)
