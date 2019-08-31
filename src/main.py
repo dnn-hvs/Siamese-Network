@@ -27,7 +27,7 @@ from train.trainer import Trainer
 def prepare_dataset(config):
     rdm = Rdms(config)
     siamese_dataset = SiameseNetworkDataset(rdm=rdm.prepare_rdms(),
-                                            transform=transforms.Compose([transforms.Resize((100, 100)),
+                                            transform=transforms.Compose([transforms.Resize((300, 300)),
                                                                           transforms.ToTensor(),
                                                                           transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[
                                                                                                0.229, 0.224, 0.225])
@@ -36,7 +36,8 @@ def prepare_dataset(config):
     train_dataloader = DataLoader(siamese_dataset,
                                   shuffle=True,
                                   num_workers=config.num_workers,
-                                  batch_size=config.batch_size)
+                                  batch_size=config.batch_size,
+                                  drop_last=True)
     return train_dataloader
 
 

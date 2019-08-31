@@ -43,13 +43,14 @@ class SiameseNetworkDataset(Dataset):
         return (torch.from_numpy(np.array([rdm[img_num1-1][img_num2-1]], dtype=np.float32)))
 
     def modify_image(self, img_path):
-        # img = np.asarray(Image.open(img_path).convert("L"))
-        img = Image.open(img_path).convert("L")
+        img = np.asarray(Image.open(img_path).convert("L"))
+        # img = Image.open(img_path).convert("L")
         # if self.apply_foveate:
         #     img = foveate.foveat_img(
         #         img, [[int(img.shape[1]/2), int(img.shape[0]/2)]])
-        # img = np.dstack((img, img, img))
-        # img = Image.fromarray(np.uint8(img))
+        img = np.dstack((img, img, img))
+        # print(img.shape)
+        img = Image.fromarray(np.uint8(img))
         if self.transform is not None:
             img = self.transform(img)
 
