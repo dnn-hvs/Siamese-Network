@@ -85,6 +85,14 @@ def train(train_dataloader, config, logger):
             config.save_dir, config.arch+get_name(config)+'_last.pth')
     try:
         print('Starting training...')
+        txt = '='*5+'Starting training...'+'='*5+'\n'
+        txt += "*"*25 + "\n"
+        args = dict((name, getattr(config, name)) for name in dir(config)
+                    if not name.startswith('_'))
+        for k, v in sorted(args.items()):
+            txt += '{}: {}\n' .format(str(k), str(v))
+        txt += "*"*25 + "\n"
+        logger.write(txt, False)
         for epoch in tqdm(range(start_epoch + 1, config.num_epochs + 1), desc='Train'):
             loss = trainer.train(epoch, train_dataloader)
             if min_loss > loss:
@@ -96,11 +104,19 @@ def train(train_dataloader, config, logger):
         print('\n\nSaving plot')
         save_plot(list(range(1, len(loss_history) + 1)),
                   loss_history, config.save_dir)
+        logger.write('='*5+'End training...'+'='*5, False)
     except KeyboardInterrupt:
         print('\n\nSaving plot')
         save_plot(list(range(1, len(loss_history) + 1)),
                   loss_history, config.save_dir)
+        logger.write('Please check error log for more details.\n' +
+                     '='*5+'End training...'+'='*5, False)
+        logger.error(KeyboardInterrupt)
         print('Byeee...')
+    except Exception as exception:
+        logger.write('Please check error log for more details.\n' +
+                     '='*5+'End training...'+'='*5, False)
+        logger.error(exception)
 
 
 def main(config):

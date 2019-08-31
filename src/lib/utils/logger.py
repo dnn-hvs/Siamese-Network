@@ -47,6 +47,7 @@ class Logger(object):
 
         self.log = open(log_dir + '/log.txt', 'w')
         self.epoch_loss_file = open(log_dir+'/epoch_vs_loss.txt', 'w')
+        self.log_dir = log_dir
         try:
             os.system('mv {}/config.txt {}/'.format(config.save_dir, log_dir))
         except:
@@ -54,20 +55,25 @@ class Logger(object):
         self.start_line = True
 
     def write(self, txt, log=True):
+        time_str = time.strftime('%Y-%m-%d-%H-%M')
         if not log:
-            self.epoch_loss_file.write(txt)
-            # self.epoch_loss_file.flush
-
-        if self.start_line:
-            time_str = time.strftime('%Y-%m-%d-%H-%M')
-            self.log.write('{}: {}'.format(time_str, txt))
+            self.epoch_loss_file.write('{}: {}'.format(time_str, txt))
         else:
-            self.log.write(txt)
+            if self.start_line:
+                self.log.write('{}: {}'.format(time_str, txt))
+            else:
+                self.log.write(txt)
 
-        self.start_line = False
-        if '\n' in txt:
-            self.start_line = True
-            self.log.flush()
+            self.start_line = False
+            if '\n' in txt:
+                self.start_line = True
+                self.log.flush()
+
+    def error(self, exception):
+        error_file = open(self.log_dir + '/error.txt', 'w')
+        time_str = time.strftime('%Y-%m-%d-%H-%M')
+        error_file.write(
+            '{}: The Exception is :: {}'.format(time_str, exception))
 
     def close(self):
         self.log.close()
