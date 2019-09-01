@@ -57,13 +57,11 @@ class SqueezeNet1_0(nn.Module):
         features = []
         for name, layer in self.sqnet_feats._modules.items():
             x = layer(x)
-            print(name)
             if sqnet1_0_feat_list[int(name)] in self.feat_list:
                 features.append(x)
 
         for name, layer in self.sqnet_classifier._modules.items():
             x = layer(x)
-            print(name)
             if sqnet1_0_classifier_list[int(name)] in self.feat_list:
                 features.append(x)
         return features
@@ -79,7 +77,7 @@ class SqueezeNet1_1(nn.Module):
                              'maxpool5',
                              'fire7',
                              'fire9', ]
-        self.select_classifier = ['conv11']
+        self.select_classifier = ['conv11', 'avgpool13']
 
         self.feat_list = self.select_feats + self.select_classifier
 
@@ -92,13 +90,11 @@ class SqueezeNet1_1(nn.Module):
         features = []
         for name, layer in self.sqnet_feats._modules.items():
             x = layer(x)
-            print(name)
             if sqnet1_1_feat_list[int(name)] in self.feat_list:
                 features.append(x)
 
         for name, layer in self.sqnet_classifier._modules.items():
             x = layer(x)
-            print(name)
             if sqnet1_1_classifier_list[int(name)] in self.feat_list:
                 features.append(x)
         return features
