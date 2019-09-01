@@ -22,6 +22,7 @@ from train.data_parallel import DataParallel
 from utils.logger import Logger
 from dataset.rdms import Rdms
 from train.trainer import Trainer
+import traceback
 
 
 def prepare_dataset(config):
@@ -100,10 +101,13 @@ def train(train_dataloader, config, logger):
                 save_model(model_best_loc, epoch, net, optimizer)
             save_model(model_last_loc, epoch, net, optimizer)
             loss_history.append(loss)
-            logger.write('Epoch {0}: Loss = {1}\n'.format(epoch, loss), False)
-        print('\n\nSaving plot')
+            logger.write('Epoch {0}: Loss = {1}\n'.format(
+                epoch, loss), False)
+            if config.sanity_check:
+                break
         save_plot(list(range(1, len(loss_history) + 1)),
                   loss_history, config.save_dir)
+        print('\n\nSaving plot')
         logger.write('='*5+'End training...'+'='*5, False)
     except KeyboardInterrupt:
         print('\n\nSaving plot')
@@ -111,12 +115,13 @@ def train(train_dataloader, config, logger):
                   loss_history, config.save_dir)
         logger.write('Please check error log for more details.\n' +
                      '='*5+'End training...'+'='*5, False)
-        logger.error(KeyboardInterrupt)
+        logger.error(traceback.format_exc())
+
         print('Byeee...')
-    except Exception as exception:
+    except:
         logger.write('Please check error log for more details.\n' +
                      '='*5+'End training...'+'='*5, False)
-        logger.error(exception)
+        logger.error(traceback.format_exc())
 
 
 def main(config):

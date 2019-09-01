@@ -49,6 +49,10 @@ class Config(object):
         self.parser.add_argument('--num_freeze_layers', type=int, default=0,
                                  help='Number of layers to freeze')
 
+        self.parser.add_argument('--sanity_check', action='store_true',
+                                 help='Used to check if the commands are'
+                                 ' correct and the folder structures are '
+                                 'properly created.')
         # self.parser.add_argument('--lr_step', type=str, default='90,120',
         #                          help='drop learning rate by 10.')
 
