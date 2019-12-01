@@ -34,9 +34,9 @@ class EucledianLoss(torch.nn.Module):
         denominator2 = torch.sqrt(torch.sum(vy ** 2, axis=1))
         denominator = denominator1 * denominator2
 
-        log_txt = f"Mean x:  {x_mean} \nMean y: {y_mean} \nNumerator: {numerator} \
-        \nDenominator: {denominator}\n"
-        log_txt += "="*100 + "\n"
+        # log_txt = f"Mean x:  {x_mean} \nMean y: {y_mean} \nNumerator: {numerator} \
+        # \nDenominator: {denominator}\n"
+        # log_txt += "="*100 + "\n"
 
-        self.logger.write(txt=log_txt)
+        # self.logger.write(txt=log_txt)
         return (numerator / denominator+1e-5).unsqueeze(1)
