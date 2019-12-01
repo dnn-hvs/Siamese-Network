@@ -25,12 +25,6 @@ class Config(object):
         # Directories
         self.parser.add_argument('-id', '--image_dir', help='stimulus directory path',
                                  default=None, type=str)
-        self.parser.add_argument(
-            '--feat_dir', help='Features directory path', default="./feats", type=str)
-        self.parser.add_argument(
-            '--rdms_dir', help='RDM directory path', default="./rdms", type=str)
-        self.parser.add_argument(
-            '--res_dir', help='RDM directory path', default="./results", type=str)
 
     def parse(self, args=''):
         if args == '':
@@ -42,6 +36,7 @@ class Config(object):
         if opt.exp_id is not None:
             opt.feat_dir = os.path.join(opt.exp_id, "feats")
             opt.rdms_dir = os.path.join(opt.exp_id, "rdms")
+            opt.res_dir = os.path.join(opt.exp_id, "results")
         return opt
 
     def init(self, args=''):
