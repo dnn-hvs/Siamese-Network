@@ -25,8 +25,16 @@ class Algonauts:
 
         os.environ['CUDA_VISIBLE_DEVICES'] = "0"
         args["device"] = torch.device('cpu')
+
+        if not os.path.exists(args["res_dir"]):
+            os.makedirs(args["res_dir"])
+        if not os.path.exists(args["rdms_dir"]):
+            os.makedirs(args["rdms_dir"])
+        if not os.path.exists(args["feat_dir"]):
+            os.makedirs(args["feat_dir"])
+
         self.config = args
 
     def run(self):
-        # GenerateFeatures(self.config).run()
-        CreateAndEvaluateRDMs(self.config).run()
+        GenerateFeatures(self.config).run()
+        return CreateAndEvaluateRDMs(self.config).run()

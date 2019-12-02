@@ -16,7 +16,7 @@ import os
 from PIL import Image
 from collections import OrderedDict
 import h5py
-from lib.utils.networks_factory import models as models_list
+from algo_lib.utils.networks_factory import models as models_list
 
 
 def zip(src, dst):

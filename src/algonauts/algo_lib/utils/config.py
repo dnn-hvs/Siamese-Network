@@ -1,8 +1,8 @@
 import argparse
 from datetime import datetime
 import os
-import lib.utils.networks_factory as networks_factory
-import lib.utils.constants as constants
+import algo_lib.utils.networks_factory as networks_factory
+import algo_lib.utils.constants as constants
 import torch
 
 
@@ -30,7 +30,7 @@ class Config(object):
         if args == '':
             opt = self.parser.parse_args()
         else:
-            opt = self.parser.parse_args(args)
+            opt = self.parser.parse_args(namespace=args)
 
         opt.image_sets = ['92', '118', '78']
         if opt.exp_id is not None:

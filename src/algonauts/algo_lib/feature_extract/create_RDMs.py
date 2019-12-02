@@ -94,6 +94,7 @@ class CreateRDMs():
         cwd = os.getcwd()
 
         # loops over layers and create RDM for each layer
+        rdms = {}
         for layer in range(num_layers):
             os.chdir(cwd)
             # RDM is num_condnsxnum_condns matrix, initialized with zeros
@@ -101,11 +102,6 @@ class CreateRDMs():
 
             # save path for RDMs in  challenge submission format
             layer_id = layer_list[layer]
-            RDM_dir = os.path.join(save_dir, layer_id)
-            if not os.path.exists(RDM_dir):
-                os.makedirs(RDM_dir)
-            RDM_filename_meg = os.path.join(RDM_dir, 'submit_meg.mat')
-            RDM_filename_fmri = os.path.join(RDM_dir, 'submit_fmri.mat')
             # RDM loop
             for i in tqdm(range(num_condns)):
                 for j in tqdm(range(num_condns)):
@@ -137,38 +133,17 @@ class CreateRDMs():
             rdm_fmri['IT_RDMs'] = RDM
             rdm_meg['MEG_RDMs_late'] = RDM
             rdm_meg['MEG_RDMs_early'] = RDM
-            sio.savemat(RDM_filename_fmri, rdm_fmri)
-            sio.savemat(RDM_filename_meg, rdm_meg)
+            rdms[layer] = {'fmri': rdm_fmri, 'meg': rdm_meg}
+        return rdms
 
     def run(self):
-
-        if self.config.fullblown or self.config.create_rdms:
-            for image_set in self.config.image_sets:
-                feats_dir = os.path.join(
-                    self.config.feat_dir, image_set+"images_feats")
-                for subdir, dirs, files in os.walk(feats_dir):
-                    if len(dirs) == 0 and len(files) != 0:
-                        save_dir = os.path.join(
-                            self.config.rdms_dir, self.config.distance, image_set+"images_rdms", subdir.split("/")[-1])
-                        if not os.path.exists(save_dir):
-                            os.makedirs(save_dir)
-                        self.create_rdm(save_dir, subdir)
-            return
-
-        # creates save_dir
-        save_dir = os.path.join(self.config.rdms_dir, self.config.distance)
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
-
-        # saves arguments used for creating RDMs
-
-        if self.config.arch != 'all':
-            self.create_rdm(os.path.join(save_dir, self.config.arch),
-                            os.path.join(self.config.feat_dir, self.config.arch))
-            return
-
-        for subdir, dirs, files in os.walk(self.config.feat_dir):
-            if len(dirs) == 0 and len(files) != 0:
-                net = subdir.split('/')[-1]
-                print("==============Creating RDMs for ", net, "==============")
-                self.create_rdm(os.path.join(save_dir, net), subdir)
+        for image_set in self.config.image_sets:
+            feats_dir = os.path.join(
+                self.config.feat_dir, image_set+"images_feats")
+            for subdir, dirs, files in os.walk(feats_dir):
+                if len(dirs) == 0 and len(files) != 0:
+                    save_dir = os.path.join(
+                        self.config.rdms_dir, self.config.distance, image_set+"images_rdms", subdir.split("/")[-1])
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+                    self.create_rdm(save_dir, subdir)

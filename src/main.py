@@ -23,6 +23,10 @@ from utils.logger import Logger
 from dataset.rdms import Rdms
 from train.trainer import Trainer
 import traceback
+from algonauts.algonauts_main import Algonauts
+import pandas as pd
+from pandas import ExcelWriter
+from pandas import ExcelFile
 
 
 def prepare_dataset(config):
@@ -94,12 +98,19 @@ def train(train_dataloader, config, logger):
             txt += '{}: {}\n' .format(str(k), str(v))
         txt += "*"*25 + "\n"
         logger.write(txt, False)
+        df_78, df_92, df_118 = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
         for epoch in tqdm(range(start_epoch + 1, config.num_epochs + 1), desc='Train'):
             loss = trainer.train(epoch, train_dataloader)
             if min_loss > loss:
                 min_loss = loss
                 save_model(model_best_loc, epoch, net, optimizer)
             save_model(model_last_loc, epoch, net, optimizer)
+            if epoch > config.algonauts_after_epoch:
+                df78, df92, df118 = Algonauts(config.exp_id, config.arch, model_last_loc,
+                                              epoch).run()
+                df_78 = df_78.append(df78, ignore_index=True)
+                df_92 = df_92.append(df92, ignore_index=True)
+                df_118 = df_118.append(df118, ignore_index=True)
             loss_history.append(loss)
             logger.write('Epoch {0}: Loss = {1}\n'.format(
                 epoch, loss), False)
@@ -109,6 +120,14 @@ def train(train_dataloader, config, logger):
                   loss_history, config.save_dir)
         print('\n\nSaving plot')
         logger.write('='*5+'End training...'+'='*5, False)
+        writer = pd.ExcelWriter(os.path.join(".", config.exp_id, 'results',
+                                             "results.xlsx"))
+        df_78.to_excel(writer, sheet_name="78")
+        df_92.to_excel(writer, sheet_name="92")
+        df_118.to_excel(writer, sheet_name="118")
+        writer.save()
+        writer.close()
+
     except KeyboardInterrupt:
         print('\n\nSaving plot')
         save_plot(list(range(1, len(loss_history) + 1)),

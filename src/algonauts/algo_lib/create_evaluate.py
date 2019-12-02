@@ -100,57 +100,58 @@ class CreateAndEvaluateRDMs():
 
         # loops over layers and create RDM for each layer
         res = {}
-        count = 0
         for layer in tqdm(range(num_layers)):
-            if count < 2:
-                os.chdir(cwd)
-                # RDM is num_condnsxnum_condns matrix, initialized with zeros
-                RDM = np.zeros((num_condns, num_condns))
+            os.chdir(cwd)
+            # RDM is num_condnsxnum_condns matrix, initialized with zeros
+            RDM = np.zeros((num_condns, num_condns))
 
-                # save path for RDMs in  challenge submission format
-                layer_id = layer_list[layer]
-                # RDM loop
-                for i in range(num_condns):
-                    for j in range(num_condns):
-                        # get feature for image index i and j
-                        feature_i = self.get_features(feat_dir, layer_id, i)
-                        feature_j = self.get_features(feat_dir, layer_id, j)
+            # save path for RDMs in  challenge submission format
+            layer_id = layer_list[layer]
+            # RDM loop
+            for i in range(num_condns):
+                for j in range(num_condns):
+                    # get feature for image index i and j
+                    feature_i = self.get_features(feat_dir, layer_id, i)
+                    feature_j = self.get_features(feat_dir, layer_id, j)
 
-                        # compute distance 1-Pearson's R
-                        if self.config["distance"] == 'pearson':
-                            RDM[i, j] = 1 - \
-                                np.corrcoef(feature_i, feature_j)[0][1]
-                        elif self.config["distance"] == 'kernel':
-                            f_i = feature_i / (feature_i*feature_i).sum()**0.5
-                            f_j = feature_j / (feature_j*feature_j).sum()**0.5
+                    # compute distance 1-Pearson's R
+                    if self.config["distance"] == 'pearson':
+                        RDM[i, j] = 1 - \
+                            np.corrcoef(feature_i, feature_j)[0][1]
+                    elif self.config["distance"] == 'kernel':
+                        f_i = feature_i / (feature_i*feature_i).sum()**0.5
+                        f_j = feature_j / (feature_j*feature_j).sum()**0.5
 
-                            dist = torch.dist(
-                                torch.tensor(f_i.reshape(-1, 1)), torch.tensor(f_j.reshape(-1, 1)))
-                            # print("Distance: ", dist)
-                            RDM[i, j] = 1-scipy.exp(- dist**2 / 2).item()
-                            # print("RDM[i, j]: ", RDM[i, j])
+                        dist = torch.dist(
+                            torch.tensor(f_i.reshape(-1, 1)), torch.tensor(f_j.reshape(-1, 1)))
+                        # print("Distance: ", dist)
+                        RDM[i, j] = 1-scipy.exp(- dist**2 / 2).item()
+                        # print("RDM[i, j]: ", RDM[i, j])
 
-                        else:
-                            print(
-                                "The", self.config["distance"], "distance measure not implemented, please request through issues")
+                    else:
+                        print(
+                            "The", self.config["distance"], "distance measure not implemented, please request through issues")
 
-                # saving RDMs in challenge submission format
-                rdm_fmri = {}
-                rdm_meg = {}
-                rdm_fmri['EVC_RDMs'] = RDM
-                rdm_fmri['IT_RDMs'] = RDM
-                rdm_meg['MEG_RDMs_late'] = RDM
-                rdm_meg['MEG_RDMs_early'] = RDM
-                # evaluate_rdm
+            # saving RDMs in challenge submission format
+            rdm_fmri = {}
+            rdm_meg = {}
+            rdm_fmri['EVC_RDMs'] = RDM
+            rdm_fmri['IT_RDMs'] = RDM
+            rdm_meg['MEG_RDMs_late'] = RDM
+            rdm_meg['MEG_RDMs_early'] = RDM
+            # evaluate_rdm
 
-                res[layer] = Evaluate(self.config).run(
-                    {'fmri': rdm_fmri, 'meg': rdm_meg})
-                count += 1
+            res[layer_id] = Evaluate(self.config).run(
+                {'fmri': rdm_fmri, 'meg': rdm_meg})
         return res
 
     def run(self):
-        df = pd.DataFrame(columns=["epoch", "layer", "EVC %",
-                                   "IT%", "AVg fMRI %", "Early %", "Late %", "Avg MEG %"])
+        df_78 = pd.DataFrame(columns=["epoch", "layer", "EVC %",
+                                      "IT%",  "Early %", "Late %"])
+        df_92 = pd.DataFrame(columns=["epoch", "layer", "EVC %",
+                                      "IT%",  "Early %", "Late %"])
+        df_118 = pd.DataFrame(columns=["epoch", "layer", "EVC %",
+                                       "IT%",  "Early %", "Late %"])
         for image_set in self.config["image_sets"]:
             self.config["image_set"] = image_set
             feats_dir = os.path.join(
@@ -162,16 +163,18 @@ class CreateAndEvaluateRDMs():
                     if not os.path.exists(save_dir):
                         os.makedirs(save_dir)
                     res = self.create_rdm(save_dir, subdir)
-                    df.loc[]
                     for key, val in res.items():
-                       
-                        temp["epoch"] = self.config["epoch"]
-                        temp["layer"] = key
-                        for key, val in val.items():
-                            print("key, val:", key, val)
-                            temp[key] = val
-                        print("Printing temp dataframe: ", temp)
-                        df = df.append(temp)
-                    print("Printing Dataframe")
-                    print(df)
-            break
+                        if image_set == "78":
+                            df_78.loc[df_78.shape[0]] = [self.config["epoch"], key,
+                                                         val["EVC %"], val["IT %"],
+                                                         val["Early %"], val["Late %"]]
+                        if image_set == "92":
+                            df_92.loc[df_92.shape[0]] = [self.config["epoch"], key,
+                                                         val["EVC %"], val["IT %"],
+                                                         val["Early %"], val["Late %"]]
+                        if image_set == "118":
+                            df_118.loc[df_118.shape[0]] = [self.config["epoch"], key,
+                                                           val["EVC %"], val["IT %"],
+                                                           val["Early %"], val["Late %"]]
+
+        return df_78, df_92, df_118

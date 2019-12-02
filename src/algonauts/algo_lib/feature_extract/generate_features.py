@@ -1,7 +1,7 @@
 import argparse
 import os
 # functions to generate features in utils.py
-from lib.utils import utils, config, networks_factory, constants
+from algo_lib.utils import utils, config, networks_factory, constants
 import torch
 import glob
 from torchvision import transforms
@@ -18,23 +18,22 @@ class GenerateFeatures():
 
     def execute_model(self, model, feats_save_dir):
         if torch.cuda.is_available():
-            model.to(self.config.device)
+            model.to(self.config["device"])
         model.eval()
         centre_crop = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
-        image_list = glob.glob(self.config.image_dir + "/*.jpg")
+        image_list = glob.glob(self.config["image_dir"] + "/*.jpg")
         image_list.sort()
         image_list = image_list
-        for image in tqdm(image_list):
+        for image in image_list:
             img = Image.open(image)
             filename = image.split("/")[-1].split(".")[0]
             input_img = Variable(centre_crop(img).unsqueeze(0))
             if torch.cuda.is_available():
-                input_img = input_img.to(self.config.device)
-
+                input_img = input_img.to(self.config["device"])
             x = model.forward(input_img)
             save_path = os.path.join(feats_save_dir, filename+".mat")
             feats = OrderedDict()
@@ -43,11 +42,11 @@ class GenerateFeatures():
             sio.savemat(save_path, feats)
 
     def get_model(self, model, load_model):
-        if self.config.load_model is not None or self.config.fullblown or self.config.generate_features:
+        if self.config["load_model"] is not None:
             model = utils.get_model(model)
             return utils.load_model(model, load_model)
         else:
-            return utils.get_model(self.config.arch)
+            return utils.get_model(self.config["arch"])
 
     def get_model_full_name(self, name):
         split_name = name.split(constants.UNDER_SCORE)
@@ -75,27 +74,25 @@ class GenerateFeatures():
         return split_name[0]
 
     def run(self):
-        if self.config.fullblown or self.config.generate_features:
-            for image_set in self.config.image_sets:
-                print("Image Set: ", image_set)
-                if not self.config.test_set:
-                    self.config.image_dir = os.path.join("../data/Training_Data/" +
-                                                         image_set+"_Image_Set", image_set+"images")
-                else:
-                    self.config.image_dir = os.path.join(
-                        "../data/Test_Data", image_set+"images")
-                models_list = glob.glob(self.config.models_dir + "/*.pth")
-                for model_pth in models_list:
-                    pth_name = model_pth.split(constants.FORWARD_SLASH)[-1]
-                    pth_name = self.get_model_full_name(pth_name)
-                    model_name = self.get_model_name(pth_name)
-                    subdir_name = pth_name.split(".")[0]
-                    print("model_name: ", model_name,
-                          " subdir_name: ", subdir_name)
-                    path = os.path.join(
-                        self.config.feat_dir, image_set+"images_feats", subdir_name)
-                    if not os.path.exists(path):
-                        os.makedirs(path)
-                    model = self.get_model(model_name, model_pth)
-                    self.execute_model(model, path)
-            return
+        for image_set in self.config["image_sets"]:
+            if image_set != "78":
+                self.config["image_dir"] = os.path.join("../data/Training_Data/" +
+                                                        image_set+"_Image_Set", image_set+"images")
+            else:
+                self.config["image_dir"] = os.path.join(
+                    "../data/Test_Data", image_set+"images")
+            model_pth = self.config["load_model"]
+            pth_name = model_pth.split(constants.FORWARD_SLASH)[-1]
+            pth_name = self.get_model_full_name(pth_name)
+            model_name = self.config["arch"]
+            subdir_name = pth_name.split(".")[0]
+            # print("model_name: ", model_name,
+            #       " subdir_name: ", subdir_name)
+            path = os.path.join(
+                self.config["feat_dir"], image_set+"images_feats", subdir_name)
+
+            if not os.path.exists(path):
+                os.makedirs(path)
+            model = self.get_model(model_name, model_pth)
+            self.execute_model(model, path)
+        return

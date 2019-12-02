@@ -21,4 +21,5 @@ def save_plot(iteration, loss, path):
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.savefig(os.path.join(path, "loss.png"))
+    plt.close()
     return

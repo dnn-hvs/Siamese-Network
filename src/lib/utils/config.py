@@ -53,8 +53,10 @@ class Config(object):
                                  help='Used to check if the commands are'
                                  ' correct and the folder structures are '
                                  'properly created.')
-        # self.parser.add_argument('--lr_step', type=str, default='90,120',
-        #                          help='drop learning rate by 10.')
+        self.parser.add_argument('--exp_id', type=str, default='.',
+                                 help='Folder name where all the results will be stored')
+        self.parser.add_argument('--algonauts_after_epoch', type=int, default=0,
+                                 help='Number of layers to freeze')
 
         # self.parser.add_argument('--master_batch_size', type=int, default=-1,
         #                          help='batch size on the master gpu.')
@@ -71,7 +73,6 @@ class Config(object):
             opt = self.parser.parse_args()
         else:
             opt = self.parser.parse_args(args)
-
         opt.gpus_str = opt.gpus
         opt.gpus = [int(gpu) for gpu in opt.gpus.split(',')]
         opt.gpus = [i for i in range(
